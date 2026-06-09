@@ -722,7 +722,7 @@
     .tab-content.active { grid-template-columns: 1fr; }
   }
   @media (max-width: 600px) {
-    html { font-size: 15px; }
+    html { font-size: 12px; }
     header { flex-direction: column; align-items: flex-start; }
     .toolbar { width: 100%; }
     .toolbar button { flex: 1; justify-content: center; }
@@ -775,7 +775,7 @@
 <div class="container">
   <header>
     <div>
-      <h1><span>&gt;</span> Hidr4lisk_Pentool</h1>
+      <h1><span>&gt;</span> <span id="titleScramble">Hidr4lisk_Pentool</span></h1>
       <div class="sub" data-i18n="subtitle">Interactive Pentesting Guide · offline-first</div>
     </div>
     <div class="toolbar">
@@ -2366,8 +2366,8 @@ function toggleToolStats() {
 
 /* ── Font Size Controls ── */
 const FONT_SIZE_KEY = 'hidr4lisk_pentool_font_size';
-const FONT_DEFAULT = window.matchMedia('(max-width: 600px)').matches ? 15 : 18;
-const FONT_MIN = 13;
+const FONT_DEFAULT = window.matchMedia('(max-width: 600px)').matches ? 12 : 18;
+const FONT_MIN = 11;
 const FONT_MAX = 48;
 
 function getFontSize() {
@@ -2421,6 +2421,24 @@ loadFromStorage();
 updateNoteStats();
 updateProgress('networks');
 updateProgress('targets');
+
+/* Efecto scramble del título al cargar (mismo que warp/shield/tech) */
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const el = document.getElementById('titleScramble');
+  if (!el) return;
+  const orig = el.textContent;
+  const chars = '!@#$%^&*<>[]{}01';
+  let frame = 0;
+  const total = 40;
+  const id = setInterval(function () {
+    el.textContent = orig.split('').map(function (ch, i) {
+      const lockAt = Math.floor((i / orig.length) * total * 0.75);
+      return frame > lockAt ? ch : chars[Math.floor(Math.random() * chars.length)];
+    }).join('');
+    if (++frame >= total) { clearInterval(id); el.textContent = orig; }
+  }, 50);
+})();
 
 document.addEventListener('keydown', function(e) {
   const mod = e.ctrlKey || e.metaKey;
