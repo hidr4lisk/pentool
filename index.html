@@ -23,7 +23,7 @@
      portado al tema oscuro del pentool */
   .top-bar { position: sticky; top: 0; z-index: 200; background: rgba(13,17,23,0.92);
     border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-  .top-bar__inner { max-width: 1800px; margin: 0 auto; padding: 8px 16px; height: 100%;
+  .top-bar__inner { max-width: 1800px; margin: 0 auto; padding: 8px 24px; height: 100%;
     display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .top-bar__left, .top-bar__right { display: flex; align-items: center; gap: 12px;
     font-size: 0.72rem; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; }
@@ -46,14 +46,14 @@
   .site-footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
     background: rgba(13,17,23,0.95); border-top: 1px solid var(--border);
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-  .site-footer .foot-line { max-width: 1800px; margin: 0 auto; padding: 7px 16px;
+  .site-footer .foot-line { max-width: 1800px; margin: 0 auto; padding: 7px 24px;
     display: flex; align-items: center; justify-content: center; gap: 10px;
     flex-wrap: wrap; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.02em; }
   .site-footer a { color: var(--text-dim); text-decoration: none; transition: color .15s; }
   .site-footer a:hover { color: var(--accent); }
   .site-footer .foot-brand { color: var(--accent); font-weight: 700; }
   .site-footer .foot-sep { opacity: 0.4; }
-  .container { padding-bottom: 48px; }
+  .container { padding: 20px 24px 56px; }
   body {
     font-family: var(--font);
     background: var(--bg);
@@ -61,7 +61,7 @@
     line-height: 2.5;
     font-weight: 500;
     letter-spacing: 0.02em;
-    padding: 32px;
+    padding: 0;
     min-height: 100vh;
   }
   .container { max-width: 1800px; margin: 0 auto; }
