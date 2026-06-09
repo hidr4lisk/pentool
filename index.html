@@ -722,6 +722,7 @@
     .tab-content.active { grid-template-columns: 1fr; }
   }
   @media (max-width: 600px) {
+    html { font-size: 15px; }
     header { flex-direction: column; align-items: flex-start; }
     .toolbar { width: 100%; }
     .toolbar button { flex: 1; justify-content: center; }
@@ -784,7 +785,7 @@
       <button id="layoutToggle" onclick="toggleLayout()" title="Toggle single/two-column layout (Ctrl+Shift+G)">⊞ 2-col</button>
       <span class="font-size-controls">
         <button onclick="changeFontSize(-1)" title="Decrease font size (Ctrl+-)">A−</button>
-        <span id="fontSizeLabel" title="Click to reset to default (18px)">18px</span>
+        <span id="fontSizeLabel" title="Click to reset to default size">18px</span>
         <button onclick="changeFontSize(1)" title="Increase font size (Ctrl+=)">A+</button>
       </span>
       <input type="file" id="fileInput" accept=".md" onchange="importMD(event)">
@@ -2365,8 +2366,8 @@ function toggleToolStats() {
 
 /* ── Font Size Controls ── */
 const FONT_SIZE_KEY = 'hidr4lisk_pentool_font_size';
-const FONT_DEFAULT = 18;
-const FONT_MIN = 18;
+const FONT_DEFAULT = window.matchMedia('(max-width: 600px)').matches ? 15 : 18;
+const FONT_MIN = 13;
 const FONT_MAX = 48;
 
 function getFontSize() {
