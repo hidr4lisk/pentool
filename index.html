@@ -1088,6 +1088,7 @@ const DATA = {
 };
 // i18n: aplanar DATA al idioma activo (los call-sites usan s.title/s.desc/s.phase como string)
 DATA.flow.forEach(s => { s.title = tr(s.title); s.desc = tr(s.desc); s.phase = tr(s.phase); });
+Object.values(SCOPE_META).forEach(m => { m.label = tr(m.label); });
 
 const TOOL_EXAMPLES = {
   "searchsploit": {
