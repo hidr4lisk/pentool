@@ -20,7 +20,7 @@ machines by exporting/importing a file — nothing else.
 
 | # | Feature | Description |
 |---|---------|-------------|
-| 01 | **Two guided playbooks** | *Networks* and *Individual Targets*, each split into ordered phases — recon, enumeration, exploitation, post-exploitation, reporting… |
+| 01 | **One guided methodology** | A single PTES / kill-chain funnel — recon → enumeration → vuln analysis → exploitation → post-exploitation → reporting — that zooms from the whole network down to the individual host. Each step carries a scope chip (`NET` / `OSINT` / `WEB` / `HOST`) so there's no tab-switching and no duplicated tooling. |
 | 02 | **60+ tools with examples** | Every step lists the relevant tools as chips. Click a tool to see ready-to-use command examples; click a command to copy it. |
 | 03 | **Per-step notes** | A notes field on every step, auto-saved as you type, with line/char counters. |
 | 04 | **Multiple sessions** | One isolated workspace per engagement/target — create, rename, duplicate, delete. Each keeps its own notes and tool checklist. |

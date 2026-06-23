@@ -192,6 +192,45 @@
     color: var(--accent);
   }
   .step-title .num { color: var(--text-dim); margin-right: 6px; }
+  /* Chip de alcance (RED/OSINT/WEB/HOST/TODO) */
+  .scope-chip {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 1px 6px;
+    margin-right: 8px;
+    border-radius: 3px;
+    vertical-align: middle;
+    border: 1px solid currentColor;
+    line-height: 1.5;
+  }
+  .scope-red   { color: var(--red); }
+  .scope-osint { color: var(--orange); }
+  .scope-web   { color: var(--accent); }
+  .scope-host  { color: var(--green); }
+  .scope-all   { color: var(--text-dim); }
+  /* Divisor de fase de la metodología */
+  .phase-divider {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0 -16px;
+  }
+  .phase-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .phase-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
   .step-desc {
     font-size: 1.05rem;
     color: var(--text-dim);
@@ -807,7 +846,7 @@
     <span class="session-info" id="sessionInfo"></span>
   </div>
 
-  <div id="progress-networks" class="progress-bar"></div>
+  <div id="progress-flow" class="progress-bar"></div>
   <div id="trailSummary" class="trail-summary" style="display:none">
     <span class="label" data-i18n="route">Route:</span>
     <div class="trail-path" id="trailPath"></div>
@@ -841,17 +880,8 @@
     <span class="list" id="toolStatsList"></span>
     <span class="toggle-view" id="toolStatsToggle" onclick="toggleToolStats()">+ expand</span>
   </div>
-  <div class="tabs">
-    <button class="active" data-tab="networks" data-i18n="tab_networks" onclick="switchTab('networks')">Redes</button>
-    <button data-tab="targets" data-i18n="tab_targets" onclick="switchTab('targets')">Objetivos Individuales</button>
-  </div>
-  <div id="progress-targets" class="progress-bar"></div>
-
-  <!-- ========== REDES ========== -->
-  <div id="tab-networks" class="tab-content active"></div>
-
-  <!-- ========== OBJETIVOS INDIVIDUALES ========== -->
-  <div id="tab-targets" class="tab-content"></div>
+  <!-- ========== METODOLOGÍA ÚNICA (embudo red → host) ========== -->
+  <div id="tab-flow" class="tab-content active"></div>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -883,8 +913,7 @@ const I18N = {
     route: 'Ruta:', tool_journey: 'Recorrido:',
     search_ph: 'Buscar notas y herramientas...',
     tools_label: 'Herramientas:',
-    tab_networks: 'Redes', tab_targets: 'Objetivos individuales',
-    cat_networks: 'Redes', cat_targets: 'Objetivos', used: 'usadas', steps: 'pasos', expand: '+ ver', collapse: '− contraer',
+    cat_flow: 'Metodología', used: 'usadas', steps: 'pasos', expand: '+ ver', collapse: '− contraer',
     foot_feedback: 'Feedback',
     no_examples: 'Sin ejemplos para', prompt_new_session: 'Nombre de la sesión (ej: objetivo del cliente):',
     toast_created: 'Sesión «{n}» creada', prompt_rename: 'Nuevo nombre:', toast_renamed: 'Sesión renombrada',
@@ -912,8 +941,7 @@ const I18N = {
     route: 'Route:', tool_journey: 'Tool Journey:',
     search_ph: 'Search notes and tools...',
     tools_label: 'Tools:',
-    tab_networks: 'Networks', tab_targets: 'Individual Targets',
-    cat_networks: 'Networks', cat_targets: 'Targets', used: 'used', steps: 'steps', expand: '+ expand', collapse: '− collapse',
+    cat_flow: 'Methodology', used: 'used', steps: 'steps', expand: '+ expand', collapse: '− collapse',
     foot_feedback: 'Feedback',
     no_examples: 'No examples for', prompt_new_session: 'Session name (e.g. client target):',
     toast_created: 'Session "{n}" created', prompt_rename: 'New name:', toast_renamed: 'Session renamed',
@@ -948,81 +976,116 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(el => { const s = T(el.dataset.i18n); if (s != null) el.textContent = s; });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => { const s = T(el.dataset.i18nPh); if (s != null) el.placeholder = s; });
 }
+// Metodología única (embudo PTES / kill-chain): se arranca amplio en la red y se
+// hace zoom al host. 'scope' marca el alcance de cada paso (chip de color); ya no
+// hay planillas separadas red/objetivo y las herramientas no se duplican entre tabs.
+const SCOPE_META = {
+  red:   { label: { es: "RED",   en: "NET" } },
+  osint: { label: { es: "OSINT", en: "OSINT" } },
+  web:   { label: { es: "WEB",   en: "WEB" } },
+  host:  { label: { es: "HOST",  en: "HOST" } },
+  all:   { label: { es: "TODO",  en: "ALL" } },
+};
 const DATA = {
-  networks: [
+  flow: [
+    // ── 1. Reconocimiento ──────────────────────────────────────────────
     {
-      title: { es: "Reconocimiento de red", en: "Network reconnaissance" },
-      desc: { es: "Identificar hosts activos, servicios y topología de red. Mapear el blanco antes de cualquier ataque.", en: "Identify live hosts, services and network topology. Map the target before any attack." },
+      phase: { es: "1 · Reconocimiento", en: "1 · Reconnaissance" }, scope: "red",
+      title: { es: "Descubrimiento de hosts", en: "Host discovery" },
+      desc: { es: "Identificar hosts activos y topología de la red. Mapear el alcance antes de cualquier ataque.", en: "Identify live hosts and network topology. Map the scope before any attack." },
       tools: ["nmap", "masscan", "arp-scan", "netdiscover", "fping"]
     },
     {
-      title: { es: "Enumeración de servicios", en: "Service enumeration" },
-      desc: { es: "Identificar versiones de servicios, SO y posibles vectores. Escaneo de puertos detallado.", en: "Identify service versions, OS and possible vectors. Detailed port scanning." },
-      tools: ["nmap", "amap", "dmitry", "unicornscan"]
-    },
-    {
-      title: { es: "Ataque a servicios de red", en: "Network service attacks" },
-      desc: { es: "Explotar vulnerabilidades conocidas en servicios expuestos (SMB, FTP, SSH, RDP, etc.).", en: "Exploit known vulnerabilities in exposed services (SMB, FTP, SSH, RDP, etc.)." },
-      tools: ["Metasploit", "smbclient", "enum4linux", "hydra", "medusa"]
-    },
-    {
-      title: { es: "Sniffing & MITM", en: "Sniffing & MITM" },
-      desc: { es: "Interceptar y analizar tráfico de red. Captura de credenciales y sesiones.", en: "Intercept and analyze network traffic. Capture credentials and sessions." },
-      tools: ["tcpdump", "Wireshark", "bettercap", "mitmproxy", "ettercap"]
-    },
-    {
-      title: { es: "Post-explotación en red", en: "Network post-exploitation" },
-      desc: { es: "Pivoting, persistencia y escalado horizontal dentro de la red comprometida.", en: "Pivoting, persistence and lateral movement within the compromised network." },
-      tools: ["chisel", "sshuttle", "proxychains", "ligolo-ng", "cobalt strike"]
-    },
-    {
-      title: { es: "Reporte y documentación", en: "Reporting & documentation" },
-      desc: { es: "Consolidar hallazgos, evidencia y recomendaciones en un informe estructurado.", en: "Consolidate findings, evidence and recommendations into a structured report." },
-      tools: ["dradis", "cherrytree", "faraday", "markdown"]
-    }
-  ],
-  targets: [
-    {
-      title: { es: "Enumeración del objetivo", en: "Target enumeration" },
-      desc: { es: "Recolectar información pasiva y activa del blanco: dominios, subdominios, IPs, tecnologías.", en: "Gather passive and active info on the target: domains, subdomains, IPs, technologies." },
+      phase: { es: "1 · Reconocimiento", en: "1 · Reconnaissance" }, scope: "osint",
+      title: { es: "OSINT / footprinting", en: "OSINT / footprinting" },
+      desc: { es: "Recolectar información pasiva y activa: dominios, subdominios, IPs, tecnologías y correos.", en: "Gather passive and active info: domains, subdomains, IPs, technologies and emails." },
       tools: ["whois", "dig", "nslookup", "Sublist3r", "amass", "theHarvester", "whatweb"]
     },
+    // ── 2. Enumeración ─────────────────────────────────────────────────
     {
-      title: { es: "Análisis de superficie de ataque", en: "Attack surface analysis" },
-      desc: { es: "Identificar endpoints, tecnologías web, WAF, parámetros y posibles vectores de entrada.", en: "Identify endpoints, web technologies, WAF, parameters and possible entry vectors." },
-      tools: ["Burp Suite", "katana", "gospider", "waybackurls", "nuclei"]
+      phase: { es: "2 · Enumeración", en: "2 · Enumeration" }, scope: "red",
+      title: { es: "Servicios y versiones", en: "Services & versions" },
+      desc: { es: "Escaneo de puertos detallado: versiones de servicios, SO y posibles vectores en cada host.", en: "Detailed port scanning: service versions, OS and possible vectors on each host." },
+      tools: ["nmap", "amap", "dmitry", "unicornscan", "enum4linux", "smbclient"]
     },
     {
-      title: { es: "Pruebas de inyección (SQLi / XSS / SSTI)", en: "Injection testing (SQLi / XSS / SSTI)" },
+      phase: { es: "2 · Enumeración", en: "2 · Enumeration" }, scope: "web",
+      title: { es: "Superficie de ataque web", en: "Web attack surface" },
+      desc: { es: "Identificar endpoints, tecnologías web, WAF y parámetros del objetivo individual.", en: "Identify endpoints, web technologies, WAF and parameters on the individual target." },
+      tools: ["Burp Suite", "katana", "gospider", "waybackurls"]
+    },
+    // ── 3. Análisis de vulnerabilidades ────────────────────────────────
+    {
+      phase: { es: "3 · Análisis de vulnerabilidades", en: "3 · Vulnerability analysis" }, scope: "all",
+      title: { es: "Identificación de vulnerabilidades", en: "Vulnerability identification" },
+      desc: { es: "Correlacionar servicios y versiones con CVEs y exploits conocidos antes de explotar.", en: "Correlate services and versions with known CVEs and exploits before exploiting." },
+      tools: ["nuclei", "searchsploit", "nmap"]
+    },
+    // ── 4. Explotación ─────────────────────────────────────────────────
+    {
+      phase: { es: "4 · Explotación", en: "4 · Exploitation" }, scope: "red",
+      title: { es: "Servicios de red", en: "Network services" },
+      desc: { es: "Explotar vulnerabilidades conocidas en servicios expuestos (SMB, FTP, SSH, RDP, etc.).", en: "Exploit known vulnerabilities in exposed services (SMB, FTP, SSH, RDP, etc.)." },
+      tools: ["Metasploit", "hydra", "medusa", "smbclient"]
+    },
+    {
+      phase: { es: "4 · Explotación", en: "4 · Exploitation" }, scope: "web",
+      title: { es: "Inyección (SQLi / XSS / SSTI)", en: "Injection (SQLi / XSS / SSTI)" },
       desc: { es: "Probar vulnerabilidades de inyección en formularios, parámetros y cabeceras.", en: "Test injection vulnerabilities in forms, parameters and headers." },
       tools: ["sqlmap", "dalfox", "xsstrike", "Burp Intruder"]
     },
     {
+      phase: { es: "4 · Explotación", en: "4 · Exploitation" }, scope: "web",
       title: { es: "Autenticación y sesión", en: "Authentication & session" },
-      desc: { es: "Evaluar mecanismos de login, JWT, OAuth, MFA bypass, session fixation, CSRF.", en: "Assess login mechanisms, JWT, OAuth, MFA bypass, session fixation, CSRF." },
+      desc: { es: "Evaluar login, JWT, OAuth, MFA bypass, session fixation y CSRF.", en: "Assess login, JWT, OAuth, MFA bypass, session fixation and CSRF." },
       tools: ["jwt_tool", "Burp Sequencer", "hydra"]
     },
+    // ── 5. Post-explotación ────────────────────────────────────────────
     {
+      phase: { es: "5 · Post-explotación", en: "5 · Post-exploitation" }, scope: "host",
       title: { es: "Escalada de privilegios (local)", en: "Privilege escalation (local)" },
-      desc: { es: "Técnicas para escalar privilegios en sistemas Linux/Windows (kernel, misconfigs, tareas).", en: "Techniques to escalate privileges on Linux/Windows systems (kernel, misconfigs, jobs)." },
+      desc: { es: "Escalar privilegios en Linux/Windows (kernel, misconfigs, SUID, tareas programadas).", en: "Escalate privileges on Linux/Windows (kernel, misconfigs, SUID, scheduled jobs)." },
       tools: ["LinPeas", "WinPEAS", "exploit-suggester", "GTFO", "sudo", "suid", "cron"]
     },
     {
+      phase: { es: "5 · Post-explotación", en: "5 · Post-exploitation" }, scope: "red",
+      title: { es: "Pivoting y movimiento lateral", en: "Pivoting & lateral movement" },
+      desc: { es: "Pivotar hacia segmentos internos y moverse horizontalmente en la red comprometida.", en: "Pivot into internal segments and move laterally within the compromised network." },
+      tools: ["chisel", "sshuttle", "proxychains", "ligolo-ng", "cobalt strike"]
+    },
+    {
+      phase: { es: "5 · Post-explotación", en: "5 · Post-exploitation" }, scope: "red",
+      title: { es: "Sniffing & MITM", en: "Sniffing & MITM" },
+      desc: { es: "Interceptar y analizar tráfico interno. Captura de credenciales y sesiones.", en: "Intercept and analyze internal traffic. Capture credentials and sessions." },
+      tools: ["tcpdump", "Wireshark", "bettercap", "mitmproxy", "ettercap"]
+    },
+    {
+      phase: { es: "5 · Post-explotación", en: "5 · Post-exploitation" }, scope: "host",
       title: { es: "Exfiltración y persistencia", en: "Exfiltration & persistence" },
       desc: { es: "Extraer datos del objetivo y establecer mecanismos de persistencia.", en: "Extract data from the target and establish persistence mechanisms." },
       tools: ["nc", "powershell", "base64", "webshell"]
     },
+    // ── 6. Reporte ─────────────────────────────────────────────────────
     {
-      title: { es: "Reporte final", en: "Final report" },
-      desc: { es: "Documentar hallazgos, impacto, severidad y pasos de remediación.", en: "Document findings, impact, severity and remediation steps." },
-      tools: ["CVSS 3.1", "DREAD", "Risk Matrix"]
+      phase: { es: "6 · Reporte", en: "6 · Reporting" }, scope: "all",
+      title: { es: "Reporte y documentación", en: "Reporting & documentation" },
+      desc: { es: "Consolidar hallazgos, impacto, severidad y remediación en un informe estructurado.", en: "Consolidate findings, impact, severity and remediation into a structured report." },
+      tools: ["CVSS 3.1", "DREAD", "Risk Matrix", "dradis", "cherrytree", "faraday", "markdown"]
     }
   ]
 };
-// i18n: aplanar DATA al idioma activo (los call-sites usan s.title/s.desc como string)
-[...DATA.networks, ...DATA.targets].forEach(s => { s.title = tr(s.title); s.desc = tr(s.desc); });
+// i18n: aplanar DATA al idioma activo (los call-sites usan s.title/s.desc/s.phase como string)
+DATA.flow.forEach(s => { s.title = tr(s.title); s.desc = tr(s.desc); s.phase = tr(s.phase); });
 
 const TOOL_EXAMPLES = {
+  "searchsploit": {
+    desc: "Búsqueda offline de exploits en la base de Exploit-DB.",
+    lines: [
+      "searchsploit apache 2.4",
+      "searchsploit -x linux/remote/12345.c   # ver el exploit",
+      "searchsploit --nmap scan.xml           # cruzar con un escaneo nmap"
+    ]
+  },
   "nmap": {
     desc: "Network Mapper — escaneo de puertos, detección de servicios y SO.",
     lines: [
@@ -1516,17 +1579,15 @@ const TOOL_DESC_EN = {
 if (LANG === 'en') Object.entries(TOOL_DESC_EN).forEach(([k, d]) => { if (TOOL_EXAMPLES[k]) TOOL_EXAMPLES[k].desc = d; });
 
 /* ── Render ── */
-function switchTab(name) {
-  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-  document.querySelector(`.tabs button[data-tab="${name}"]`).classList.add('active');
-  document.getElementById(`tab-${name}`).classList.add('active');
-  closeAllExamples();
-  updateProgress(name);
+function scopeChip(scope) {
+  const meta = SCOPE_META[scope];
+  if (!meta) return '';
+  return `<span class="scope-chip scope-${scope}" title="${meta.label}">${meta.label}</span>`;
 }
 
 function renderSteps(category, steps) {
   const container = document.getElementById(`tab-${category}`);
+  let lastPhase = null;
   container.innerHTML = steps.map((s, i) => {
     const toolChips = s.tools.map(t => {
       const id = `chk-${category}-${i}-${t.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`;
@@ -1536,10 +1597,16 @@ function renderSteps(category, steps) {
       </div>`;
     }).join('');
 
-    return `
+    let phaseDivider = '';
+    if (s.phase && s.phase !== lastPhase) {
+      lastPhase = s.phase;
+      phaseDivider = `<div class="phase-divider"><span class="phase-label">${s.phase}</span></div>`;
+    }
+
+    return `${phaseDivider}
     <div class="step" data-index="${i}" data-category="${category}">
       <div class="step-header">
-        <div class="step-title"><span class="collapse-arrow">▼</span><span class="num">#${i+1}</span>${s.title} <span class="step-tool-count" id="stc-${category}-${i}"></span></div>
+        <div class="step-title"><span class="collapse-arrow">▼</span><span class="num">#${i+1}</span>${scopeChip(s.scope)}${s.title} <span class="step-tool-count" id="stc-${category}-${i}"></span></div>
       </div>
       <div class="step-tools">${toolChips}</div>
       <div class="trail-map" id="trail-${category}-${i}">
@@ -1554,8 +1621,7 @@ function renderSteps(category, steps) {
   }).join('');
 }
 
-renderSteps('networks', DATA.networks);
-renderSteps('targets', DATA.targets);
+renderSteps('flow', DATA.flow);
 
 /* ── Tool chips & examples ── */
 function toolCheckChanged(cb, cat, step) {
@@ -1665,7 +1731,7 @@ function updateProgress(category) {
   });
   const pct = total ? Math.round((done/total)*100) : 0;
   bar.innerHTML = `
-    <span class="label">${T(category === 'networks' ? 'cat_networks' : 'cat_targets')}</span>
+    <span class="label">${T('cat_flow')}</span>
     <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
     <span class="count">${done}/${total}</span>
   `;
@@ -1853,8 +1919,7 @@ function createSession() {
   renderSessionSelect();
   loadSessionData(sessions[id].data);
   updateNoteStats();
-  updateProgress('networks');
-  updateProgress('targets');
+  updateProgress('flow');
   showToast(tf('toast_created', { n: name.trim() }));
 }
 
@@ -1867,8 +1932,7 @@ function switchSession(id) {
   loadSessionData(sessions[id].data);
   updateNoteStats();
   renderSessionSelect();
-  updateProgress('networks');
-  updateProgress('targets');
+  updateProgress('flow');
 }
 
 function renameSession() {
@@ -1899,8 +1963,7 @@ function duplicateSession() {
   renderSessionSelect();
   loadSessionData(sessions[id].data);
   updateNoteStats();
-  updateProgress('networks');
-  updateProgress('targets');
+  updateProgress('flow');
   showToast(tf('toast_duplicated', { n: name.trim() }));
 }
 
@@ -1927,13 +1990,48 @@ function deleteSession() {
   }
   saveAllSessions(sessions);
   renderSessionSelect();
-  updateProgress('networks');
-  updateProgress('targets');
+  updateProgress('flow');
   showToast(T('toast_deleted'));
 }
 
 function emptySessionData() {
-  return { networks: { notes: [], tools: [] }, targets: { notes: [], tools: [] } };
+  return { flow: { notes: [], tools: [] } };
+}
+
+// Mapeo del modelo viejo (2 planillas) → flujo único, para no perder notas guardadas.
+// Cada índice del flujo nuevo apunta a [categoría_vieja, índice_viejo].
+const LEGACY_FLOW_MAP = [
+  ['networks', 0], // 0 descubrimiento de hosts
+  ['targets',  0], // 1 OSINT / footprinting
+  ['networks', 1], // 2 servicios y versiones
+  ['targets',  1], // 3 superficie de ataque web
+  null,            // 4 análisis de vulnerabilidades (paso nuevo)
+  ['networks', 2], // 5 explotación servicios de red
+  ['targets',  2], // 6 inyección
+  ['targets',  3], // 7 autenticación y sesión
+  ['targets',  4], // 8 escalada de privilegios
+  ['networks', 4], // 9 pivoting y lateral
+  ['networks', 3], // 10 sniffing & MITM
+  ['targets',  5], // 11 exfiltración y persistencia
+  ['networks', 5], // 12 reporte (se le suma targets[6] abajo)
+];
+
+// Convierte data {networks,targets} al nuevo {flow}. Migra notas (lo irremplazable);
+// los checks de herramientas se reinician porque las listas cambiaron de paso.
+function migrateLegacyData(data) {
+  if (!data || data.flow || (!data.networks && !data.targets)) return data;
+  const flow = { notes: [], tools: [] };
+  LEGACY_FLOW_MAP.forEach((src, i) => {
+    let note = '';
+    if (src) note = data[src[0]]?.notes?.[src[1]] || '';
+    if (i === 12) {
+      const extra = data.targets?.notes?.[6] || '';
+      note = [note, extra].filter(Boolean).join('\n\n');
+    }
+    flow.notes.push(note);
+    flow.tools.push((DATA.flow[i]?.tools || []).map(() => false));
+  });
+  return { flow };
 }
 
 function saveCurrentToSession() {
@@ -1946,7 +2044,7 @@ function saveCurrentToSession() {
 
 function getSessionData() {
   const data = emptySessionData();
-  ['networks','targets'].forEach(cat => {
+  ['flow'].forEach(cat => {
     document.querySelectorAll(`#tab-${cat} .step textarea`).forEach(ta => data[cat].notes.push(ta.value));
     document.querySelectorAll(`#tab-${cat} .step`).forEach(step => {
       const tools = [];
@@ -1959,7 +2057,8 @@ function getSessionData() {
 
 function loadSessionData(data) {
   if (!data) return;
-  ['networks','targets'].forEach(cat => {
+  data = migrateLegacyData(data);
+  ['flow'].forEach(cat => {
     if (data[cat]) {
       if (data[cat].notes) {
         document.querySelectorAll(`#tab-${cat} .step textarea`).forEach((ta, i) => {
@@ -2036,13 +2135,14 @@ function exportMD() {
   let md = `# Pentesting Report — ${sessionName}\n\n`;
   md += `> Generated by Hidr4lisk_Pentool on ${new Date().toLocaleString()}\n\n`;
 
-  ['networks','targets'].forEach(catKey => {
-    const label = catKey === 'networks' ? 'Redes' : 'Objetivos Individuales';
+  ['flow'].forEach(catKey => {
     const steps = DATA[catKey];
     const textareas = document.querySelectorAll(`#tab-${catKey} .step textarea`);
-    md += `# Category: ${label}\n\n`;
+    md += `# Category: Metodología\n\n`;
+    let lastPhase = null;
     textareas.forEach((ta, i) => {
       const s = steps[i];
+      if (s.phase && s.phase !== lastPhase) { lastPhase = s.phase; md += `### ${s.phase}\n\n`; }
       const chipStates = [];
       document.querySelectorAll(`#tab-${catKey} .step`)[i]?.querySelectorAll('.tool-chip').forEach(chip => {
         const name = chip.querySelector('.tool-name')?.textContent || '';
@@ -2050,6 +2150,7 @@ function exportMD() {
         chipStates.push(checked ? `[x] ${name}` : `[ ] ${name}`);
       });
       md += `## Step ${i+1}: ${s.title}\n\n`;
+      md += `**Scope:** ${(SCOPE_META[s.scope]?.label) || ''}\n\n`;
       md += `**Tools:** ${chipStates.join(', ')}\n\n`;
       md += `**Description:** ${s.desc}\n\n`;
       const safeVal = (ta.value || '*No notes recorded*').replace(/```/g, '\\`' + '``');
@@ -2060,11 +2161,9 @@ function exportMD() {
   // Trail summary section
   md += `# Route Trail\n\n`;
   let overallTotal = 0, overallDone = 0;
-  ['networks','targets'].forEach(catKey => {
-    const label = catKey === 'networks' ? 'Redes' : 'Objetivos Individuales';
+  ['flow'].forEach(catKey => {
     const steps = DATA[catKey];
     const textareas = document.querySelectorAll(`#tab-${catKey} .step textarea`);
-    md += `## ${label}\n\n`;
     textareas.forEach((ta, i) => {
       const s = steps[i];
       const chips = document.querySelectorAll(`#tab-${catKey} .step`)[i]?.querySelectorAll('.tool-chip') || [];
@@ -2087,14 +2186,14 @@ function exportMD() {
 
   // Tool Journey section
   const toolMap = {};
-  ['networks','targets'].forEach(catKey => {
+  ['flow'].forEach(catKey => {
     document.querySelectorAll(`#tab-${catKey} .step`).forEach((step, i) => {
       const s = DATA[catKey][i];
       step.querySelectorAll('.tool-chip').forEach(chip => {
         if (!chip.classList.contains('checked')) return;
         const name = chip.querySelector('.tool-name')?.textContent || '';
         if (!toolMap[name]) toolMap[name] = [];
-        toolMap[name].push({ cat: catKey === 'networks' ? 'Redes' : 'Objetivos', step: i + 1, title: s.title });
+        toolMap[name].push({ step: i + 1, title: s.title });
       });
     });
   });
@@ -2102,7 +2201,7 @@ function exportMD() {
   if (toolEntries.length > 0) {
     md += `# Tool Journey\n\n`;
     toolEntries.sort((a, b) => a[0].localeCompare(b[0])).forEach(([name, steps]) => {
-      const path = steps.map(s => `${s.cat} → Step ${s.step}: ${s.title}`).join(', ');
+      const path = steps.map(s => `Step ${s.step}: ${s.title}`).join(', ');
       md += `- **${name}** — ${path}\n`;
     });
     md += '\n';
@@ -2138,9 +2237,7 @@ function importMD(event) {
     sections.forEach(section => {
       const catMatch = section.match(/^# Category: (.+)/m);
       if (!catMatch) return;
-      const label = catMatch[1].trim();
-      const catKey = label === 'Redes' ? 'networks' : 'targets';
-      if (!catKey) return;
+      const catKey = 'flow';
       const steps = DATA[catKey];
       const textareas = document.querySelectorAll(`#tab-${catKey} .step textarea`);
 
@@ -2196,8 +2293,7 @@ function importMD(event) {
       showToast(T('toast_parse_fail'), true);
     } else {
       saveToStorage();
-      updateProgress('networks');
-      updateProgress('targets');
+      updateProgress('flow');
       showToast(tf('toast_imported_notes', { n: totalNotes, f: file.name }));
     }
     event.target.value = '';
@@ -2304,8 +2400,7 @@ function importSessionJSON(event) {
       }
       renderSessionSelect();
       updateNoteStats();
-      updateProgress('networks');
-      updateProgress('targets');
+      updateProgress('flow');
       showToast(tf('toast_imported_sessions', { n: imported }));
     } catch(err) {
       showToast(T('toast_session_parse_fail'), true);
@@ -2330,8 +2425,7 @@ function clearNotes() {
   document.querySelectorAll('.trail-dot').forEach(d => d.classList.remove('used'));
   saveToStorage();
   updateNoteStats();
-  updateProgress('networks');
-  updateProgress('targets');
+  updateProgress('flow');
   showToast(T('toast_cleared'));
 }
 
@@ -2421,8 +2515,7 @@ setFontSize(getFontSize());
 setLayout(getLayout());
 loadFromStorage();
 updateNoteStats();
-updateProgress('networks');
-updateProgress('targets');
+updateProgress('flow');
 
 /* Efecto scramble del título al cargar (mismo que warp/shield/tech) */
 (function () {

@@ -21,7 +21,7 @@ otra exportando/importando un archivo — nada más.
 
 | # | Función | Descripción |
 |---|---------|-------------|
-| 01 | **Dos playbooks guiados** | *Redes* y *Objetivos individuales*, cada uno dividido en fases ordenadas — reconocimiento, enumeración, explotación, post-explotación, reporte… |
+| 01 | **Una metodología guiada** | Un único embudo PTES / kill-chain — reconocimiento → enumeración → análisis de vulnerabilidades → explotación → post-explotación → reporte — que hace zoom desde toda la red hasta el host individual. Cada paso lleva un chip de alcance (`RED` / `OSINT` / `WEB` / `HOST`), así no hay cambio de pestaña ni herramientas duplicadas. |
 | 02 | **+60 herramientas con ejemplos** | Cada paso lista las herramientas como chips. Clic en una herramienta para ver ejemplos de comandos listos para usar; clic en un comando para copiarlo. |
 | 03 | **Notas por paso** | Un campo de notas en cada paso, autoguardado mientras escribís, con contador de líneas/caracteres. |
 | 04 | **Sesiones múltiples** | Un espacio aislado por trabajo/objetivo — crear, renombrar, duplicar, borrar. Cada una guarda sus propias notas y checklist de herramientas. |
