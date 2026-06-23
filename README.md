@@ -58,6 +58,16 @@ For **authorized** penetration testing, lab practice and security study only (CT
 networks, engagements with written permission). It is a note-taking checklist — it runs no scans
 and attacks nothing by itself. Use it only where you are allowed to.
 
+## Changelog
+
+### v2 — Unified methodology
+
+- The two parallel playbooks (*Networks* / *Individual Targets*) are replaced by a **single guided methodology**: one continuous funnel through the standard phases (recon → enumeration → vulnerability analysis → exploitation → post-exploitation → reporting) that zooms from the whole network down to the host. No more tab-switching, no duplicated tooling.
+- Each step now carries a **scope chip** (`NET` / `OSINT` / `WEB` / `HOST` / `ALL`) and steps are grouped under phase dividers.
+- Added an explicit **vulnerability-analysis** phase and the `searchsploit` tool.
+- **Saves from v1 are not compatible.** The data model changed (a single `flow` instead of separate `networks`/`targets`), so notes, tool checks and `.md` / `.json` exports from the previous version no longer load. Start a fresh session.
+- Session JSON export schema bumped to `version: 2`.
+
 ## License
 
 [MIT](./LICENSE)

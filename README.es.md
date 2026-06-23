@@ -59,6 +59,16 @@ Solo para pruebas de penetración **autorizadas**, práctica en laboratorio y es
 (CTFs, tus propias redes, trabajos con permiso por escrito). Es una checklist de notas — no corre
 ningún escaneo ni ataca nada por sí misma. Usala solo donde estés autorizado.
 
+## Registro de cambios
+
+### v2 — Metodología única
+
+- Las dos planillas paralelas (*Redes* / *Objetivos individuales*) se reemplazan por una **metodología guiada única**: un embudo continuo por las fases estándar (reconocimiento → enumeración → análisis de vulnerabilidades → explotación → post-explotación → reporte) que hace zoom desde toda la red hasta el host. Sin cambio de pestaña ni herramientas duplicadas.
+- Cada paso lleva ahora un **chip de alcance** (`RED` / `OSINT` / `WEB` / `HOST` / `TODO`) y los pasos se agrupan bajo divisores de fase.
+- Se agrega una fase explícita de **análisis de vulnerabilidades** y la herramienta `searchsploit`.
+- **Los saves de la v1 no son compatibles.** Cambió el modelo de datos (un único `flow` en vez de `networks`/`targets` separados), así que las notas, los tildes de herramientas y los exports `.md` / `.json` de la versión anterior ya no cargan. Arrancá una sesión nueva.
+- El esquema de exportación JSON pasa a `version: 2`.
+
 ## Licencia
 
 [MIT](./LICENSE)

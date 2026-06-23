@@ -192,6 +192,18 @@
     color: var(--accent);
   }
   .step-title .num { color: var(--text-dim); margin-right: 6px; }
+  /* Badge de versión en el título */
+  .version-badge {
+    display: inline-block;
+    font-size: 0.5em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    vertical-align: super;
+    color: var(--green);
+    border: 1px solid var(--green);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
   /* Chip de alcance (RED/OSINT/WEB/HOST/TODO) */
   .scope-chip {
     display: inline-block;
@@ -816,7 +828,7 @@
 <div class="container">
   <header>
     <div>
-      <h1><span>&gt;</span> <span id="titleScramble">Hidr4lisk_Pentool</span></h1>
+      <h1><span>&gt;</span> <span id="titleScramble">Hidr4lisk_Pentool</span> <span class="version-badge">v2</span></h1>
       <div class="sub" data-i18n="subtitle">Interactive Pentesting Guide · offline-first</div>
     </div>
     <div class="toolbar">
@@ -1998,42 +2010,6 @@ function emptySessionData() {
   return { flow: { notes: [], tools: [] } };
 }
 
-// Mapeo del modelo viejo (2 planillas) → flujo único, para no perder notas guardadas.
-// Cada índice del flujo nuevo apunta a [categoría_vieja, índice_viejo].
-const LEGACY_FLOW_MAP = [
-  ['networks', 0], // 0 descubrimiento de hosts
-  ['targets',  0], // 1 OSINT / footprinting
-  ['networks', 1], // 2 servicios y versiones
-  ['targets',  1], // 3 superficie de ataque web
-  null,            // 4 análisis de vulnerabilidades (paso nuevo)
-  ['networks', 2], // 5 explotación servicios de red
-  ['targets',  2], // 6 inyección
-  ['targets',  3], // 7 autenticación y sesión
-  ['targets',  4], // 8 escalada de privilegios
-  ['networks', 4], // 9 pivoting y lateral
-  ['networks', 3], // 10 sniffing & MITM
-  ['targets',  5], // 11 exfiltración y persistencia
-  ['networks', 5], // 12 reporte (se le suma targets[6] abajo)
-];
-
-// Convierte data {networks,targets} al nuevo {flow}. Migra notas (lo irremplazable);
-// los checks de herramientas se reinician porque las listas cambiaron de paso.
-function migrateLegacyData(data) {
-  if (!data || data.flow || (!data.networks && !data.targets)) return data;
-  const flow = { notes: [], tools: [] };
-  LEGACY_FLOW_MAP.forEach((src, i) => {
-    let note = '';
-    if (src) note = data[src[0]]?.notes?.[src[1]] || '';
-    if (i === 12) {
-      const extra = data.targets?.notes?.[6] || '';
-      note = [note, extra].filter(Boolean).join('\n\n');
-    }
-    flow.notes.push(note);
-    flow.tools.push((DATA.flow[i]?.tools || []).map(() => false));
-  });
-  return { flow };
-}
-
 function saveCurrentToSession() {
   if (!activeSessionId) return;
   const sessions = getAllSessions();
@@ -2057,7 +2033,6 @@ function getSessionData() {
 
 function loadSessionData(data) {
   if (!data) return;
-  data = migrateLegacyData(data);
   ['flow'].forEach(cat => {
     if (data[cat]) {
       if (data[cat].notes) {
@@ -2343,7 +2318,7 @@ function getFullSessionState() {
   const sessions = getAllSessions();
   const activeId = activeSessionId;
   return {
-    version: 1,
+    version: 2,
     exported: new Date().toISOString(),
     activeSessionId: activeId,
     sessions: sessions
