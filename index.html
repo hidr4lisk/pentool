@@ -23,7 +23,7 @@
      → el select cae en la MISMA posición que en los otros 4 repos a pantalla completa.
      Usa el accent de hidralisk (sage #98B4A6); SOLO la navbar lleva este color. */
   .top-bar { --nav-accent: #98B4A6; --nav-pad: 1rem;
-    position: sticky; top: 0; z-index: 200; height: 36px; background: rgba(13,17,23,0.92);
+    position: sticky; top: 0; z-index: 200; height: 36px; background: rgb(255 255 255 / .92);
     border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
   @media (min-width: 640px)  { .top-bar { --nav-pad: 1.5rem; } }
   @media (min-width: 1024px) { .top-bar { --nav-pad: 3rem; } }
@@ -58,7 +58,7 @@
   .lang-sep { color: var(--border); font-size: 0.72rem; }
   /* Footer fijo, 1 línea, conciso */
   .site-footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
-    background: rgba(13,17,23,0.95); border-top: 1px solid var(--border);
+    background: rgb(255 255 255 / .92); border-top: 1px solid var(--border);
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
   .site-footer .foot-line { max-width: 1800px; margin: 0 auto; padding: 7px 24px;
     display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -264,7 +264,7 @@
     width: 100%;
     min-height: 100px;
     padding: 16px 20px;
-    background: #010409;
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);
@@ -388,7 +388,7 @@
   .tool-examples .ex-content {
     display: none;
     padding: 12px 14px;
-    background: #010409;
+    background: var(--surface);
     flex: 1;
     overflow-y: auto;
     scrollbar-width: thin;
@@ -406,7 +406,7 @@
   .tool-examples .ex-content pre {
     font-family: var(--font);
     font-size: 1rem;
-    background: #0d1117;
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 12px 14px;
@@ -442,7 +442,7 @@
     font-size: 1rem;
     width: 100%;
     padding: 12px 16px;
-    background: #010409;
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);
@@ -476,7 +476,7 @@
     font-family: var(--font);
     font-size: 0.9rem;
     padding: 6px 12px;
-    background: #010409;
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);
@@ -610,7 +610,7 @@
   .shortcut-hints kbd {
     display: inline-block;
     padding: 1px 5px;
-    background: rgba(48,54,61,0.5);
+    background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 3px;
     font-family: var(--font);
@@ -841,6 +841,11 @@ header h1{animation:title-glitch 2s steps(1,end) forwards;}
   #glitch-overlay{display:none;}
 }
 </style>
+<!-- Piel común de los 6 proyectos (tema Inverse). Va DESPUÉS del <style> a
+     propósito: pisa los tokens de este sitio sin obligar a reescribirlo.
+     Fuente de verdad: hidralisk, hidra/static/hidra/landing-kit/.
+     Se distribuye con scripts/sync-landings.sh — NO editar acá, el sync lo pisa. -->
+<link rel="stylesheet" href="hidra-kit/kit.css">
 </head>
 <body>
 <div id="glitch-overlay" aria-hidden="true"></div>
